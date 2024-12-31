@@ -1,0 +1,77 @@
+@font-face {
+    font-family: "plain";
+    src: url(assets/fonts/plain/Plain-Regular.otf);
+}
+
+*,
+html,
+body {
+    font-family: plain, sans-serif;
+}
+
+.export {
+    font-family: plain;
+    background-color: #00cba6;
+    opacity: 0.7;
+    border: none;
+    color: white;
+    padding: 15px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 26px
+}
+
+/* .dt-table-container__row .dt-table-container__row-1 {
+  height: 250 !important;
+} */
+
+.cell.cell-1-1.dash-fixed-content {
+    height: 100% !important;
+}
+
+/* .dash-table-container {
+  height: 274px !important;
+} */
+
+.md {
+    /* background-color: #00cba6; */
+    font-family: plain;
+    font-weight: light;
+}
+
+.view-page-button-style {
+    background-color: rgba(0, 203, 166, 0.7);
+    border: none;
+    color: white;
+    padding: 15px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+    margin-right: 20px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 26px;
+}
+
+.download-button-style {
+    background-color: rgba(0, 203, 166, 0.7);
+    border: none;
+    color: white;
+    padding: 15px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 26px;
+}
+
+.card-text {
+        font-family: plain;
+        color: grey;
+        font-weight: light;
+}
