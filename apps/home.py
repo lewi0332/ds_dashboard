@@ -25,6 +25,16 @@ layout = dbc.Container([
                 Consider it a small portfolio project to demonstrate an ability to gather, query, present track and predict 
                 data. All while actully providing me with a useful tool to help find a job.
 
+                Would you like me to build you a tool like this? Obviously, I'm looking for a job, so I'm open to freelance work.
+
+                Let's connect:
+
+                - [LinkedIn](https://www.linkedin.com/in/derrickjlewis/)
+
+                - [www.derrickjlewis.com](https://www.derrickjameslewis.com/)
+
+                - [GitHub](https://github.com/lewi0332)
+
                 ---
                 """,
                 className='card-text',
