@@ -54,10 +54,6 @@ layout = dbc.Container([
                 ---
                 # Job Applications Tracking
                 ---
-                
-                Volume of job applications I have applied to.
-    
-                ---
                 """,
                 className='md')
             ])
@@ -66,12 +62,97 @@ layout = dbc.Container([
         dbc.Col(
             dcc.Markdown(
                 children = """
-                ---
-                ### Info
                 """,
                 className='md'),
         width=5)
     ]),
+# ---------------------------------------------------------------------
+    dbc.Row([
+        dbc.Col(html.H2('Total Applications Created',
+                        style={
+                            'color': 'grey',
+                            'text-align': 'center',
+                            'font-size': 24,
+                        }),
+                width=5),
+        dbc.Col(html.H2('Total Rejections',
+                        style={
+                            'color': 'grey',
+                            'font-size': 24,
+                            'textAlign': 'center'
+                        }),
+                align="center",
+                width=5)
+    ],
+            justify='center',
+            align='center',
+            style={'padding-top': 0}),
+    dbc.Row([
+        dbc.Col(html.H1(id='applications-created',
+                        style={
+                            'font-size': 36,
+                            'padding': 0,
+                            'textAlign': 'center',
+                            'margin-bottom': 0
+                        }),
+                align="center",
+                width=5),
+        dbc.Col(html.H1(id='rejection-count',
+                        style={
+                            'font-size': 36,
+                            'padding': 0,
+                            'textAlign': 'center',
+                            'margin-bottom': 0
+                        }),
+                align="center",
+                width=5)
+    ],
+            justify='center'),
+    html.Br(),
+    dbc.Row([
+        dbc.Col(html.H2('Total Responses',
+                        style={
+                            'color': 'grey',
+                            'text-align': 'center',
+                            'font-size': 24,
+                        }),
+                width=5),
+        dbc.Col(html.H2('Total Offers',
+                        style={
+                            'color': 'grey',
+                            'font-size': 24,
+                            'textAlign': 'center'
+                        }),
+                align="center",
+                width=5)
+    ],
+            justify='center',
+            align='center',
+            style={'padding-top': 0}),
+    dbc.Row([
+        dbc.Col(html.H1('N/A',
+                        id='responses',
+                        style={
+                            'font-size': 36,
+                            'padding': 0,
+                            'textAlign': 'center',
+                            'margin-bottom': 0
+                        }),
+                align="center",
+                width=5),
+        dbc.Col(html.H1('N/A',
+                        id='offers',
+                        style={
+                            'font-size': 36,
+                            'padding': 0,
+                            'textAlign': 'center',
+                            'margin-bottom': 0
+                        }),
+                align="center",
+                width=5)
+    ],
+            justify='center'),
+# ---------------------------------------------------------------------
     dbc.Row([
         dbc.Col(
             [
@@ -113,13 +194,19 @@ layout = dbc.Container([
         # dbc.Col(
         #     dcc.Graph(id='scatter'), width=6)
     ]),
+    dbc.Row([
+        dbc.Col(
+            dcc.Graph(id='pay-histogram')),
+    ]),
+    dbc.Row([
+        dbc.Col(
+            dcc.Graph(id='sankey')),
+    ]),
     dbc.Row(
         dbc.Col(
                 dcc.Markdown(id='codeblock',
                 children = """
-                ```sql
-                CREATE SCHEMA 
-                );
+                ```
                 ```
                 """,
                 
@@ -147,13 +234,36 @@ def load_initial_data(data, n_clicks):
 # update commit map
 @app.callback(
     Output('commit-map', 'figure'),
+    Output('pay-histogram', 'figure'),
+    Output('sankey', 'figure'),
     Input('datatable', 'rowData')
 )
-def update_commit_map(data):
+def update_visuals(data):
     dff = pd.DataFrame(data)
-    
-    fig = display_year(dff)
-    return fig
+    commit_map = display_year(dff)
+    pay_hist = pay_histogram(dff)
+    sankey = build_sankey(dff)
+    return commit_map, pay_hist, sankey
+
+@app.callback(
+    Output('applications-created', 'children'),
+    Output('rejection-count', 'children'),
+    Output('responses', 'children'),
+    Output('offers', 'children'),
+    Input('datatable', 'rowData')
+)
+def update_metrics(data):
+    dff = pd.DataFrame(data)
+    applications_created = len(dff)
+    rejection_count = dff['rejection'].sum().astype(str)
+    responses = dff['recruiter_screen'].sum().astype(str)
+    offers = dff['offer'].sum().astype(str)
+    return applications_created, rejection_count, responses, offers
+
+
+# ---------------------------------------------------------------------
+# Python functions
+# ---------------------------------------------------------------------
 
 
 def display_year(dff: pd.DataFrame):
@@ -164,7 +274,7 @@ def display_year(dff: pd.DataFrame):
     # Create a date spine for the last 90 days
     end_date = datetime.today().date()
     start_date = end_date - timedelta(days=180)
-    date_spine = pd.DataFrame({'application_date': pd.date_range(start=start_date, end=end_date).date})
+    date_spine = pd.DataFrame({'application_date': pd.date_range(start=start_date, end=end_date)})
     date_spine['application_date'] = pd.to_datetime(date_spine['application_date'])
     date_spine['week_day'] = date_spine['application_date'].dt.weekday
 
@@ -212,7 +322,7 @@ def display_year(dff: pd.DataFrame):
     )
 
     fig.update_layout(
-        title='activity chart',
+        title='Activity Chart',
         height=250,
         yaxis=dict(
             showline=False, showgrid=False, zeroline=False,
@@ -232,4 +342,85 @@ def display_year(dff: pd.DataFrame):
         margin = dict(t=40),
         showlegend=False,
     )
+    return fig
+
+
+def pay_histogram(data):
+    """
+    Create overlaping histograms for pay_min histogram and pay_max histogram
+    #TODO: Test density plot.
+    """
+    hist_data = data[['pay_min', 'pay_max']][(data['pay_min'] > 0) & (data['pay_max'] > 0)]
+    fig = go.Figure()
+    fig.add_trace(go.Histogram(x=hist_data['pay_min'], name='pay_min', opacity=0.75, nbinsx=20))
+    fig.add_trace(go.Histogram(x=hist_data['pay_max'], name='pay_max', opacity=0.75, nbinsx=20))
+    fig.update_layout(
+        title='Pay Histogram',
+        xaxis_title='Pay',
+        yaxis_title='Count',
+        barmode='overlay',
+        font={'size':10, 'color':'#9e9e9e'},
+
+    )
+    return fig
+
+
+def build_sankey(data):
+    """
+    Create a sankey diagram to show the application journey
+    """
+    cold_apps = data[(data['refferal']==0)&(data['recruiter_screen']==0)&(data['rejection']==0)]['application_id'].count()
+    ca_to_screen = data[(data['refferal']==0) & (data['recruiter_screen']==1)]['application_id'].count()
+    ca_to_rejection = data[(data['refferal']==0) & (data['rejection']==1)]['application_id'].count()
+
+    ref_apps = data[(data['refferal']==1)&(data['recruiter_screen']==0)&(data['rejection']==0)]['application_id'].count()
+    ref_to_screen = data[(data['refferal']==1) & (data['recruiter_screen']==1)]['application_id'].count()
+    ref_to_rejection = data[(data['refferal']==1) & (data['rejection']==1)]['application_id'].count()
+
+    screen_to_hiring_man = data[(data['recruiter_screen']==1) & (data['hiring_manager_screen']==1)]['application_id'].count()
+    screen_to_rejection = data[(data['recruiter_screen']==1) & (data['hiring_manager_screen']==0) & (data['rejection']==1)]['application_id'].count()
+    screen_to_no_response = data[(data['recruiter_screen']==1) & (data['hiring_manager_screen']==0) & (data['rejection']==0)]['application_id'].count()
+
+    hiring_to_tech = data[(data['hiring_manager_screen']==1) & (data['technical_screen']==1)]['application_id'].count()
+    hiring_to_rejection = data[(data['hiring_manager_screen']==1) & (data['technical_screen']==0) & (data['rejection']==1)]['application_id'].count()
+    hiring_to_no_response = data[(data['hiring_manager_screen']==1) & (data['technical_screen']==0) & (data['rejection']==0)]['application_id'].count()
+
+    tech_to_offer = data[(data['technical_screen']==1) & (data['offer']==1)]['application_id'].count()
+    tech_to_rejection = data[(data['technical_screen']==1) & (data['offer']==0) & (data['rejection']==1)]['application_id'].count()
+    tech_to_no_response = data[(data['technical_screen']==1) & (data['offer']==0) & (data['rejection']==0)]['application_id'].count()
+
+    fig = go.Figure(data=[go.Sankey(
+        node = dict(
+        pad = 15,
+        thickness = 20,
+        line = dict(color = "black", width = 0.5),
+        label = ["Cold Application", "Network Refferal", "Recruiter Screen", "Hiring Manager Screen", "Technical Screen", "No Response", "Rejection", "Offer"],
+        ),
+        link = dict(
+        source = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4],
+        target = [2, 5, 6, 2, 5, 6, 3, 5, 6, 4, 5, 6, 5, 6, 7],
+        value = [
+            ca_to_screen,
+            cold_apps,
+            ca_to_rejection,
+            ref_to_screen,
+            ref_apps,
+            ref_to_rejection,
+            screen_to_hiring_man,
+            screen_to_rejection,
+            screen_to_no_response,
+            hiring_to_tech,
+            hiring_to_rejection,
+            hiring_to_no_response,
+            tech_to_offer,
+            tech_to_rejection,
+            tech_to_no_response
+            ]
+    ))])
+
+    fig.update_layout(
+        title_text="Application Journey (Sankey Diagram)",
+        title_font_size=10,
+        title_font_color='#9e9e9e',
+        )
     return fig
