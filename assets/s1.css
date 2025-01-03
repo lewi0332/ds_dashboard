@@ -75,3 +75,19 @@ body {
         color: grey;
         font-weight: light;
 }
+
+.center-aligned-header .ag-header-cell-label {
+    justify-content: center;
+}
+
+.center-aligned-cell {
+    text-align: center;
+}
+
+.cellCenter .ag-cell-wrapper {
+    justify-content: center;
+  }
+
+.ag-theme-material.compact {
+    --ag-grid-size: 6px;
+}

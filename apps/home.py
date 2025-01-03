@@ -130,7 +130,7 @@ layout = dbc.Container([
                         ),
                         dbc.Button(
                             'View Page', 
-                            href='/Q3',
+                            href='/segmentation',
                             class_name='view-page-button-style',
                             style={'position': 'absolute', 'bottom': '10px'}
                         )]
@@ -158,7 +158,7 @@ layout = dbc.Container([
                             ),
                         dbc.Button(
                             'View Page', 
-                            href='/Q3',
+                            href='/about',
                             class_name='view-page-button-style',
                             style={'position': 'absolute', 'bottom': '10px'}
                             )

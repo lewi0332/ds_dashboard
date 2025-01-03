@@ -15,7 +15,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import dash_ag_grid as dag
 from google.cloud import bigquery
-from apps.tables import JOBcolumnDefs, defaultColDef
+from apps.tables import JOBcolumnDefs, defaultColDef, column_size_options
 from plotly_theme_light import plotly_light
 from main import app
 
@@ -37,6 +37,7 @@ FONTSIZE = 12
 
 def load_data():
     dff = pd.read_parquet("gs://dashapp-375513.appspot.com/data.parquet")
+    dff.sort_values(by='application_date', ascending=False, inplace=True)
     return dff.to_dict('records')
 
 
@@ -52,7 +53,7 @@ layout = dbc.Container([
                 dcc.Markdown(id='intro',
                 children = """
                 ---
-                # Job Applications Tracking
+                # Job Application Tracking
                 ---
                 """,
                 className='md')
@@ -153,22 +154,35 @@ layout = dbc.Container([
     ],
             justify='center'),
 # ---------------------------------------------------------------------
+    # Add modal for job details
+    dbc.Modal(
+        [
+            dbc.ModalHeader(id="table-modal-header"),
+            dbc.ModalBody(id="table-modal-body"),
+            dbc.ModalFooter(
+                dbc.Button("Close", id="close", className="ml-auto")
+            ),
+        ],
+        id="table-modal",
+        size="lg",
+    ),
     dbc.Row([
         dbc.Col(
             [
             html.Br(),
             dag.AgGrid(
                 id="datatable",
-                className="ag-theme-material",
+                className="ag-theme-material compact",
                 # dynamically set columns
                 columnDefs=JOBcolumnDefs,
                 columnSize="autoSize",
+                columnSizeOptions=column_size_options,
                 defaultColDef=defaultColDef,
                 dashGridOptions={"undoRedoCellEditing": True, 
                 "cellSelection": "single",
                 "rowSelection": "single"},
                 csvExportParams={"fileName": "job_applications.csv", "columnSeparator": ","},
-                style = {'height': '400px', 'width': '100%', 'color': 'grey'}
+                style = {'height': '600px', 'width': '100%', 'color': 'grey'}
                 ),
             dbc.Button(
                 'Reload', id='reloadTop', n_clicks=0,
@@ -259,6 +273,30 @@ def update_metrics(data):
     responses = dff['recruiter_screen'].sum().astype(str)
     offers = dff['offer'].sum().astype(str)
     return applications_created, rejection_count, responses, offers
+
+# Display a field in the modal when clicked
+@app.callback(
+    Output("table-modal", "is_open"),
+    Output("table-modal-body", "children"),
+    Output("table-modal-header", "header"),
+    Input("datatable", "rowData"),
+    Input("datatable", "cellClicked"),
+    Input("close", "n_clicks"),
+    prevent_initial_call=True
+)
+def display_modal(data, selected_cell, n_clicks):
+    if n_clicks:
+        return False, [], ""
+    if selected_cell:
+        row = selected_cell['rowIndex']
+        dff = pd.DataFrame(data)
+        row_data = dff.iloc[row]
+        modal_body = []
+        for col in dff.columns:
+            modal_body.append(dcc.Markdown(f"**{col}**: {row_data[col]}"))
+        return True, modal_body, "Job Application Details"
+    return False, [], ""
+
 
 
 # ---------------------------------------------------------------------
