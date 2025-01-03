@@ -747,7 +747,7 @@ def handle_delete_modal(delete_clicks, delete_confirmed_clicks, is_open, applica
         elif button_id == "delete-confirmed":
             dff = pd.DataFrame(raw_data)
             dff.drop(dff[dff["application_id"] == application_id].index, inplace=True)
-            dff.to_parquet("data/data.parquet", index=False)
+            dff.to_parquet("gs://dashapp-375513.appspot.com/data.parquet", index=False)
             return False, "Application deleted successfully."
         return is_open, dash.no_update
     else:
