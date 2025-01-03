@@ -29,11 +29,11 @@ layout = dbc.Container([
 
                 Let's connect:
 
-                - [LinkedIn](https://www.linkedin.com/in/derrickjlewis/)
+                > [LinkedIn](https://www.linkedin.com/in/derrickjlewis/)
 
-                - [www.derrickjlewis.com](https://www.derrickjameslewis.com/)
+                > [www.derrickjlewis.com](https://www.derrickjameslewis.com/)
 
-                - [GitHub](https://github.com/lewi0332)
+                > [GitHub](https://github.com/lewi0332)
 
                 ---
                 """,

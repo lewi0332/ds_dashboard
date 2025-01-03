@@ -350,10 +350,13 @@ def pay_histogram(data):
     Create overlaping histograms for pay_min histogram and pay_max histogram
     #TODO: Test density plot.
     """
-    hist_data = data[['pay_min', 'pay_max']][(data['pay_min'] > 0) & (data['pay_max'] > 0)]
+    hist_data = data[['pay_min', 'pay_max']][(data['pay_min'] > 0) & (data['pay_max'] > 0)].astype(float)
+
+    hist_data['pay'] = (hist_data['pay_max'] + hist_data['pay_min'])/2
     fig = go.Figure()
-    fig.add_trace(go.Histogram(x=hist_data['pay_min'], name='pay_min', opacity=0.75, nbinsx=20))
-    fig.add_trace(go.Histogram(x=hist_data['pay_max'], name='pay_max', opacity=0.75, nbinsx=20))
+    fig.add_trace(go.Histogram(x=hist_data['pay'], name='pay_min', opacity=0.85, nbinsx=20))
+    fig.add_trace(go.Histogram(x=hist_data['pay_min'], name='pay_min', opacity=0.2, nbinsx=20))
+    fig.add_trace(go.Histogram(x=hist_data['pay_max'], name='pay_max', opacity=0.2, nbinsx=20))
     fig.update_layout(
         title='Pay Histogram',
         xaxis_title='Pay',
