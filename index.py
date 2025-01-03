@@ -13,7 +13,7 @@ import plotly.io as pio
 import dash_bootstrap_components as dbc
 from plotly_theme_light import plotly_light
 from main import server, app
-from apps import dashboard, home, form, cover_letter
+from apps import dashboard, home, form, cover_letter, about, segmentation
 #page2, page3, page4
 
 pio.templates["plotly_light"] = plotly_light
@@ -171,10 +171,10 @@ def display_page(pathname):
         return dashboard.layout
     elif pathname == '/cover-letter':
         return cover_letter.layout
-    # elif pathname == '/segmentation':
-    #     return page3.layout
-    # elif pathname == '/about':
-    #     return page4.layout
+    elif pathname == '/segmentation':
+        return segmentation.layout
+    elif pathname == '/about':
+        return about.layout
     elif pathname == '/form':
         return form.layout
     else:
