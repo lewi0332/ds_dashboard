@@ -49,17 +49,17 @@ layout = dbc.Container([
         ], width=2),
         dbc.Col([
             html.Br(),
-            dbc.Button("Reload Current Data", id="load-button", class_name='view-page-button-style',),
-            html.Div(id="load-output-message", className="mt-3")
-        ], width=3),
+            dbc.Button("Start New Application", id="new-button", class_name='view-page-button-style' ),
+            html.Div(id="load-output-message", className="mt-3"),
+            html.Div(id="new-output-message", className="mt-3")
+        ]),
         dbc.Col(width=1),
     ]),
     html.Hr(),
     dbc.Row([
         dbc.Col([
-            dbc.Button("Start New Application", id="new-button", class_name='view-page-button-style',),
-            html.Div(id="new-output-message", className="mt-3")
-        ]),
+            dbc.Button("Reload Current Data", id="load-button", class_name='view-page-button-style', n_clicks=0,  style = dict(display='none')),
+        ], width=3),
         dbc.Col(
             width=3),
     ]),
@@ -317,12 +317,12 @@ layout = dbc.Container([
                 ),
         ]),
     ], className="mb-5"),
-    dbc.Row([
-        dbc.Col([
-                dbc.Button("Authenticate", id="auth-button", class_name='view-page-button-style',),
-        ]),
-        dbc.Col(width=2),
-    ], className="mb-5"),
+    # dbc.Row([
+    #     dbc.Col([
+    #             dbc.Button("Authenticate", id="auth-button", class_name='view-page-button-style',),
+    #     ]),
+    #     dbc.Col(width=2),
+    # ], className="mb-5"),
     dbc.Row([
         dbc.Col([
                 dbc.Button("Submit", id="submit-button", class_name='view-page-button-style',),
@@ -374,49 +374,14 @@ layout = dbc.Container([
 def is_authenticated(username, password):
     return VALID_USERNAME_PASSWORD_PAIRS.get(username) == password
 
-# Combined callback to handle authentication, update graph, and toggle modal
-@app.callback(
-    Output('output-message', 'children', allow_duplicate=True),
-    Output('modal', 'is_open'),
-    Input('auth-button', 'n_clicks'),
-    Input('login-button', 'n_clicks'),
-    Input('close', 'n_clicks'),
-    State('username', 'value'),
-    State('password', 'value'),
-    State('modal', 'is_open'),
-    prevent_initial_call=True
-)
-def authenticate_modal(auth_n_clicks, login_n_clicks, close_n_clicks, username, password, is_open):
-    ctx_ = dash.callback_context
-
-    if not ctx_.triggered:
-        return "", is_open
-    button_id = ctx_.triggered[0]['prop_id'].split('.')[0]
-
-    if button_id == 'auth-button':
-        if username and password and is_authenticated(username, password):
-            print("Authenticated")
-            return "Authenticated", False
-        else:
-            return "Opening login modal", True
-    elif button_id == 'login-button':
-        if is_authenticated(username, password):
-            return "Authenticated", False
-        else:
-            time.sleep(2)
-            return "Authentication failed", True
-    elif button_id == 'close':
-        return "", False
-
-    return "", is_open
-
-
-
-
 # Callback to handle form submission
 @app.callback(
     Output("output-message", "children", allow_duplicate=True),
+    Output('modal', 'is_open'),
+    Output("load-button", "n_clicks"),
     Input("submit-button", "n_clicks"),
+    Input('login-button', 'n_clicks'),
+    Input('close', 'n_clicks'),
     State("current-application-store", "data"),
     State("application-id", "value"),
     State("application-date", "date"),
@@ -460,9 +425,12 @@ def authenticate_modal(auth_n_clicks, login_n_clicks, close_n_clicks, username, 
     State("rejection-date", "date"),
     State('username', 'value'),
     State('password', 'value'),
+    State('modal', 'is_open'),
     prevent_initial_call=True
 )
 def update_bigquery(submit_n_clicks,
+                    login_n_clicks,
+                    close_n_clicks,
                     raw_data,
                     app_id,
                     application_date,
@@ -505,7 +473,8 @@ def update_bigquery(submit_n_clicks,
                     rejection,
                     rejection_date,
                     username,
-                    password):
+                    password,
+                    is_open):
     button_id = dash.callback_context
 
     button_id = button_id.triggered[0]['prop_id'].split('.')[0]
@@ -585,11 +554,21 @@ def update_bigquery(submit_n_clicks,
             # TODO Insert the row into BigQuery
             errors = []
             if errors == []:
-                return "Data submitted successfully.", False
+                return f"Application {app_id} submitted successfully.", False, 1
             else:
-                return f"Encountered errors while inserting rows in Bigquery: {errors}"
+                return f"Encountered errors while inserting rows in Bigquery: {errors}", False, None
         else:
-            return "Authentication failed", True
+            return "Opening login modal", True, None
+    elif button_id == 'login-button':
+        if is_authenticated(username, password):
+            return "Authenticated", False, None
+        else:
+            time.sleep(2)
+            return "Authentication failed", True, None
+    elif button_id == 'close':
+        return "", False, None
+
+    return "", is_open
     
     
 
@@ -607,6 +586,9 @@ def load_data(n_clicks):
 
     Store data in a hidden div to be used later
     """
+    if n_clicks is None:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    
     dff = pd.read_parquet("gs://dashapp-375513.appspot.com/data.parquet")
 
     if dff.empty:
@@ -722,6 +704,8 @@ def load_application(edit_clicks, new_clicks, application_id, raw_data):
 @app.callback(
     Output("delete-modal", "is_open"),
     Output("output-message", "children", allow_duplicate=True),
+    Output('modal', 'is_open', allow_duplicate=True),
+    Output("load-button", "n_clicks", allow_duplicate=True),
     Input("delete-button", "n_clicks"),
     Input("delete-confirmed", "n_clicks"),
     State("delete-modal", "is_open"),
@@ -735,20 +719,22 @@ def handle_delete_modal(delete_clicks, delete_confirmed_clicks, is_open, applica
     """
     Toggle the delete confirmation modal and delete the selected application.
     """
+    if delete_clicks is None and delete_confirmed_clicks is None:
+        return False, dash.no_update, False, None
     if username and password and is_authenticated(username, password):
         ctx_ = dash.callback_context
         if not ctx_.triggered:
-            return is_open, dash.no_update
+            return False, dash.no_update, False, None
 
         button_id = ctx_.triggered[0]['prop_id'].split('.')[0]
 
         if button_id == "delete-button":
-            return not is_open, dash.no_update
+            return True, dash.no_update, False, None
         elif button_id == "delete-confirmed":
             dff = pd.DataFrame(raw_data)
             dff.drop(dff[dff["application_id"] == application_id].index, inplace=True)
             dff.to_parquet("gs://dashapp-375513.appspot.com/data.parquet", index=False)
-            return False, "Application deleted successfully."
-        return is_open, dash.no_update
+            return False, f"Application {application_id} deleted successfully.", False, 1
+        return is_open, dash.no_update, False, None
     else:
-        return False, "Authentication failed"
+        return False, "Authentication failed", True, None
