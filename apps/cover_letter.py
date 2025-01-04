@@ -5,42 +5,31 @@ from google.genai import types
 from google.cloud import secretmanager, storage
 import dash_bootstrap_components as dbc
 from dash import html, dcc, Input, Output, State, callback_context
+from apps.utils import access_secret_version, read_text_from_gcs
 from main import app
 
 
-def access_secret_version(project_id, secret_id, version_id, json_type=False):
-    """
-    Access the payload for the given secret version if one exists.
-    """
-    client = secretmanager.SecretManagerServiceClient()
-    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
-    response = client.access_secret_version(request={"name": name})
-    payload = response.payload.data.decode("UTF-8")
-    if json_type:
-        payload = json.loads(payload)
-    return payload
+VALID_USERNAME_PASSWORD_PAIRS = access_secret_version(
+    "dashapp-375513",
+    "VALID_USERNAME_PASSWORD_PAIRS",
+    "latest",
+    json_type=True)
 
-VALID_USERNAME_PASSWORD_PAIRS = access_secret_version("dashapp-375513", "VALID_USERNAME_PASSWORD_PAIRS", "latest", json_type=True)
-
-BUCKET_NAME = access_secret_version("dashapp-375513", "BUCKET_NAME", "latest")
+BUCKET_NAME = access_secret_version(
+    "dashapp-375513",
+    "BUCKET_NAME",
+    "latest")
 
 # Custom authentication check
 def is_authenticated(username, password):
     return VALID_USERNAME_PASSWORD_PAIRS.get(username) == password
 
-# Function to read the resume from Google Cloud Storage
-def read_resume_from_gcs(bucket_name, file_name):
-    client = storage.Client()
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(file_name)
-    resume = blob.download_as_text()
-    return resume
-
 # Read in the resume from Google Cloud Storage
-RESUME = read_resume_from_gcs(BUCKET_NAME, "resume.txt")
+RESUME = read_text_from_gcs(BUCKET_NAME, "resume.txt")
 
 def generate(
         job_description: str,
+        company: str,
         resume: str = RESUME, 
 ) -> str:
     client = genai.Client(
@@ -48,7 +37,7 @@ def generate(
         project="dashapp-375513",
         location="us-central1")
 
-    cover_letter_prompt = types.Part.from_text(f"""You are a career counselor specializing in crafting compelling cover letters. Your task is to create a cover letter based on the provided resume and job description.  The cover letter should highlight the candidate\'s skills and experiences that align with the job requirements, showcasing their qualifications and enthusiasm for the position.
+    cover_letter_prompt = types.Part.from_text(f"""You are a career counselor specializing in crafting compelling cover letters. Your task is to create a cover letter based on the provided resume and job description.  The cover letter should highlight the candidate\'s skills and experiences that align with the job requirements, showcasing their qualifications and enthusiasm for the position. However, the candidate's tone can be slightly less formal than a traditional cover letter. The candidate is OK with a more creative and engaging approach to stand out from other applicants. 
 
     **Instructions:**
 
@@ -59,11 +48,15 @@ def generate(
     5. In the body paragraphs, provide specific examples from the resume that demonstrate how the candidate\'s skills and experiences align with the job requirements. Quantify achievements whenever possible.
     6. In the conclusion, reiterate the candidate\'s enthusiasm and express their eagerness to learn more.
     7. Maintain a professional and positive tone throughout the cover letter.
-    8. Adhere to standard cover letter formatting conventions.
+    8. Adhere to standard cover letter formatting conventions and keep the body text to around 350 words or less.
 
     **Resume:**
 
     {resume}
+
+    **Company Name:**
+
+    {company}
 
     **Job Description:**
     
@@ -113,6 +106,8 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.H2("Cover Letter Generator"),
+            dbc.Input(id="company", placeholder="Company name"),
+            html.Br(),
             dbc.Textarea(id="job-description", placeholder="Enter job description here...", style={"height": "200px"}),
             dbc.Button("Generate Cover Letter", id="generate-button", color="primary", className="mt-3"),
             html.Div(id="cover-output-message", className="mt-3"),
@@ -149,12 +144,13 @@ layout = dbc.Container([
     Input('generate-button', 'n_clicks'),
     Input('login-button', 'n_clicks'),
     Input('close', 'n_clicks'),
+    State('company', 'value'),
     State('job-description', 'value'),
     State('username', 'value'),
     State('password', 'value'),
     State('cover-modal', 'is_open')
 )
-def update_graph_and_toggle_modal(submit_n_clicks, login_n_clicks, close_n_clicks, job_description, username, password, is_open):
+def update_graph_and_toggle_modal(submit_n_clicks, login_n_clicks, close_n_clicks, company, job_description, username, password, is_open):
     ctx = callback_context
 
     if not ctx.triggered:
@@ -164,12 +160,12 @@ def update_graph_and_toggle_modal(submit_n_clicks, login_n_clicks, close_n_click
 
     if button_id == 'generate-button':
         if username and password and is_authenticated(username, password):
-            return generate(job_description=job_description), "Authenticated", False
+            return generate(company=company, job_description=job_description), "Authenticated", False
         else:
             return None, "Login to use Cover Letter Generator", True
     elif button_id == 'login-button':
         if is_authenticated(username, password):
-            return generate(job_description=job_description), "Authenticated", False
+            return generate(company=company, job_description=job_description), "Authenticated", False
         else:
             time.sleep(2)
             return None, "Authentication failed", True

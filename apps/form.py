@@ -12,19 +12,14 @@ from main import app
 # Google BigQuery client
 # client = bigquery.Client()
 
+from apps.utils import access_secret_version, upload_options_to_gcs, read_options_from_gcs
 
-def access_secret_version(project_id, secret_id, version_id):
-    """
-    Access the payload for the given secret version if one exists.
-    """
-    client = secretmanager.SecretManagerServiceClient()
-    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
-    response = client.access_secret_version(request={"name": name})
-    payload = response.payload.data.decode("UTF-8")
-    payload_dict = json.loads(payload)
-    return payload_dict
+VALID_USERNAME_PASSWORD_PAIRS = access_secret_version("dashapp-375513", "VALID_USERNAME_PASSWORD_PAIRS", "latest", json_type=True)
 
-VALID_USERNAME_PASSWORD_PAIRS = access_secret_version("dashapp-375513", "VALID_USERNAME_PASSWORD_PAIRS", "latest")
+BUCKET_NAME = access_secret_version(
+    "dashapp-375513",
+    "BUCKET_NAME",
+    "latest")
 
 # Layout of the app
 layout = dbc.Container([
@@ -63,7 +58,6 @@ layout = dbc.Container([
         dbc.Col(
             width=3),
     ]),
-
     html.H3("Role Information"),
     dbc.Row([
         dbc.Col([
@@ -116,58 +110,12 @@ layout = dbc.Container([
         ]),
         dbc.Col([
             dbc.Label("Core Skills"),
-            dcc.Dropdown(
-                ['python',
-                'sql',
-                'numpy',
-                'pandas',
-                'scikit-learn',
-                'TensorFlow',
-                'matplotlib',
-                'seaborn',
-                'ggplot',
-                'tableau',
-                'powerbi',
-                'pytorch',
-                'keras',
-                'R',
-                'excel',
-                'spark',
-                'redshift',
-                'bigquery',
-                'snowflake',
-                'hypothesis_testing',
-                'inferential statistics',
-                'nlp',
-                'computer_vision',
-                'a_b_testing',
-                'regression_analysis',
-                'time_series_analysis',
-                'AWS',
-                'GCP',
-                'Azure',
-                'Docker',
-                'Kubernetes',
-                'CI/CD',
-                'Git',
-                'Agile',
-                'Scrum',
-                'Kanban',
-                'Jira',
-                'Confluence',
-                'GA4',
-                'customer_segmentation',
-                'customer_lifetime_value',
-                'churn_prediction',
-                'RFM',
-                'market_basket_analysis',
-                'airflow'
-                ],
+            dcc.Dropdown(read_options_from_gcs(BUCKET_NAME, "core_skills_list.json"),
                 ['python', 'pandas', 'sql'],
                 multi=True,
                 id='core-skills-dropdown',
-
             ),
+            dbc.Input(type="text", id="new-core-skill-input", placeholder="Enter new core skill", size="sm", debounce=True),
         ]),
     dbc.Row([
         dbc.Col([
@@ -219,7 +167,10 @@ layout = dbc.Container([
             daq.BooleanSwitch(id='management-switch', on=False, style={'float': 'left'}),
         ]),
     ]),
-        dbc.Row([    
+    
+    html.Hr(),
+    html.H3("Source of Application"),
+    dbc.Row([    
         dbc.Col([
             dbc.Label("Personal Refferal"),
             daq.BooleanSwitch(id='refferal-switch', on=False, style={'float': 'left'}),
@@ -227,6 +178,18 @@ layout = dbc.Container([
         dbc.Col([
             dbc.Label("Recruiter Initiated"),
             daq.BooleanSwitch(id='recruiter-switch', on=False, style={'float': 'left'}),
+        ]),
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dbc.Label("Application Source"),
+            dcc.Dropdown(
+                # read_options_from_gcs(BUCKET_NAME, "application_source_list.json"),
+                options= ['Indeed', 'Glassdoor', 'Monster', 'LinkedIn', 'BuiltIn', 'Company Website'],
+                value= 'LinkedIn',
+                id='app-source-dropdown',
+            ),
+            dbc.Input(type="text", id="new-app-source-input", placeholder="Enter new source", size="sm", debounce=True),
         ]),
     ]),
     html.Hr(),
@@ -317,12 +280,6 @@ layout = dbc.Container([
                 ),
         ]),
     ], className="mb-5"),
-    # dbc.Row([
-    #     dbc.Col([
-    #             dbc.Button("Authenticate", id="auth-button", class_name='view-page-button-style',),
-    #     ]),
-    #     dbc.Col(width=2),
-    # ], className="mb-5"),
     dbc.Row([
         dbc.Col([
                 dbc.Button("Submit", id="submit-button", class_name='view-page-button-style',),
@@ -363,8 +320,8 @@ layout = dbc.Container([
         ],
         id="delete-modal",
         is_open=False
-    )
-])
+        )
+    ])
 ])
 
 
@@ -478,7 +435,7 @@ def update_bigquery(submit_n_clicks,
     button_id = dash.callback_context
 
     button_id = button_id.triggered[0]['prop_id'].split('.')[0]
-    
+
     if button_id == 'submit-button':
         if username and password and is_authenticated(username, password):
             dff = pd.DataFrame(raw_data)
@@ -567,10 +524,8 @@ def update_bigquery(submit_n_clicks,
             return "Authentication failed", True, None
     elif button_id == 'close':
         return "", False, None
-
     return "", is_open
-    
-    
+
 
 # Callback to load current data
 @app.callback(
@@ -597,6 +552,7 @@ def load_data(n_clicks):
     # Get the options for the dropdown
     options = [{"label": row['company_name'] +' - ' + row['job_title'], "value": row["application_id"]} for index, row in dff.iterrows()]
     return "Data loaded successfully.", options, options[0]["value"], dff.to_dict("records")
+
 
 # Callback to load the selected application
 @app.callback(
@@ -648,7 +604,6 @@ def load_application(edit_clicks, new_clicks, application_id, raw_data):
     if edit_clicks is None and new_clicks is None:
         return dash.no_update
     triggered_id = ctx.triggered_id
-    print(triggered_id)
     if triggered_id == 'new-button':
         dff = pd.DataFrame(raw_data)
         dff['application_id'] = dff['application_id'].astype(int)
@@ -700,6 +655,7 @@ def load_application(edit_clicks, new_clicks, application_id, raw_data):
             row["rejection_date"]
         )
 
+
 # Add a delete button to delete the selected application with confirmation modal
 @app.callback(
     Output("delete-modal", "is_open"),
@@ -738,3 +694,43 @@ def handle_delete_modal(delete_clicks, delete_confirmed_clicks, is_open, applica
         return is_open, dash.no_update, False, None
     else:
         return False, "Authentication failed", True, None
+
+# Callback to add core skills to the list in the dropdown
+@app.callback(
+    Output("core-skills-dropdown", "options"),
+    Output("new-core-skill-input", "value"),
+    Input("core-skills-dropdown", "options"),
+    Input("new-core-skill-input", "n_submit"),
+    State("new-core-skill-input", "value"),
+    prevent_initial_call=True
+)
+def add_core_skill(skill_options, n_submit, new_skill):
+    print(n_submit)
+    if n_submit is None or n_submit < 1:
+        return dash.no_update
+    elif new_skill is None:
+        return dash.no_update
+    print(skill_options)
+    skill_options.append(new_skill)
+    upload_options_to_gcs(skill_options, BUCKET_NAME, "core_skills_list.json")
+    return skill_options, None
+
+# Callback to add new Source to the list in the dropdown
+@app.callback(
+    Output("app-source-dropdown", "options"),
+    Output("new-app-source-input", "value"),
+    Input("app-source-dropdown", "options"),
+    Input("new-app-source-input", "n_submit"),
+    State("new-app-source-input", "value"),
+    prevent_initial_call=True
+)
+def add_app_source(source_options, n_submit, new_source):
+    print(n_submit)
+    print(new_source)
+    if n_submit is None or n_submit < 1:
+        return dash.no_update
+    elif new_source is None:
+        return dash.no_update
+    source_options.append(new_source)
+    upload_options_to_gcs(source_options, BUCKET_NAME, "app_source_list.json")
+    return source_options, None
