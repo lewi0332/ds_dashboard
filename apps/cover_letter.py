@@ -30,6 +30,7 @@ RESUME = read_text_from_gcs(BUCKET_NAME, "resume.txt")
 def generate(
         job_description: str,
         company: str,
+        platform: str = "LinkedIn",
         resume: str = RESUME, 
 ) -> str:
     client = genai.Client(
@@ -37,14 +38,14 @@ def generate(
         project="dashapp-375513",
         location="us-central1")
 
-    cover_letter_prompt = types.Part.from_text(f"""You are a career counselor specializing in crafting compelling cover letters. Your task is to create a cover letter based on the provided resume and job description.  The cover letter should highlight the candidate\'s skills and experiences that align with the job requirements, showcasing their qualifications and enthusiasm for the position. However, the candidate's tone can be slightly less formal than a traditional cover letter. The candidate is OK with a more creative and engaging approach to stand out from other applicants. 
+    cover_letter_prompt = types.Part.from_text(f"""You are a career counselor specializing in crafting compelling cover letters. Your task is to create a cover letter based on the provided resume and job description.  The cover letter should highlight the candidate\'s skills and experiences that align with the job requirements, showcasing their qualifications for the position. 
 
     **Instructions:**
 
     1. Carefully analyze the provided resume and job description.
     2. Identify key skills, experiences, and qualifications from the resume that match the requirements outlined in the job description.
     3. Structure the cover letter with a clear introduction, body paragraphs, and conclusion.
-    4. In the introduction, express the candidate\'s interest in the specific position and company, mentioning where they learned about the opportunity.
+    4. In the introduction, express the candidate\'s interest in the specific position and company.
     5. In the body paragraphs, provide specific examples from the resume that demonstrate how the candidate\'s skills and experiences align with the job requirements. Quantify achievements whenever possible.
     6. In the conclusion, reiterate the candidate\'s enthusiasm and express their eagerness to learn more.
     7. Maintain a professional and positive tone throughout the cover letter.
@@ -57,6 +58,10 @@ def generate(
     **Company Name:**
 
     {company}
+
+    **Platform with the Job Posting:**
+
+    {platform}
 
     **Job Description:**
     
@@ -108,6 +113,8 @@ layout = dbc.Container([
             html.H2("Cover Letter Generator"),
             dbc.Input(id="company", placeholder="Company name"),
             html.Br(),
+            dbc.Input(id="platform", placeholder="Platform with the job posting"),
+            html.Br(),
             dbc.Textarea(id="job-description", placeholder="Enter job description here...", style={"height": "200px"}),
             dbc.Button("Generate Cover Letter", id="generate-button", color="primary", className="mt-3"),
             html.Div(id="cover-output-message", className="mt-3"),
@@ -145,12 +152,22 @@ layout = dbc.Container([
     Input('login-button', 'n_clicks'),
     Input('close', 'n_clicks'),
     State('company', 'value'),
+    State('platform', 'value'),
     State('job-description', 'value'),
     State('username', 'value'),
     State('password', 'value'),
     State('cover-modal', 'is_open')
 )
-def update_graph_and_toggle_modal(submit_n_clicks, login_n_clicks, close_n_clicks, company, job_description, username, password, is_open):
+def update_graph_and_toggle_modal(
+    submit_n_clicks,
+    login_n_clicks,
+    close_n_clicks,
+    company,
+    platform,
+    job_description,
+    username,
+    password,
+    is_open):
     ctx = callback_context
 
     if not ctx.triggered:
@@ -160,12 +177,12 @@ def update_graph_and_toggle_modal(submit_n_clicks, login_n_clicks, close_n_click
 
     if button_id == 'generate-button':
         if username and password and is_authenticated(username, password):
-            return generate(company=company, job_description=job_description), "Authenticated", False
+            return generate(company=company, platform= platform, job_description=job_description), "Authenticated", False
         else:
             return None, "Login to use Cover Letter Generator", True
     elif button_id == 'login-button':
         if is_authenticated(username, password):
-            return generate(company=company, job_description=job_description), "Authenticated", False
+            return generate(company=company, platform= platform, job_description=job_description), "Authenticated", False
         else:
             time.sleep(2)
             return None, "Authentication failed", True
