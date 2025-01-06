@@ -49,7 +49,7 @@ def generate(
     5. In the body paragraphs, provide specific examples from the resume that demonstrate how the candidate\'s skills and experiences align with the job requirements. Quantify achievements whenever possible.
     6. In the conclusion, reiterate the candidate\'s enthusiasm and express their eagerness to learn more.
     7. Maintain a professional and positive tone throughout the cover letter.
-    8. Adhere to standard cover letter formatting conventions and keep the body text to around 350 words or less.
+    8. Adhere to standard cover letter formatting conventions and keep the body text to around 300 words or less.
 
     **Resume:**
 
