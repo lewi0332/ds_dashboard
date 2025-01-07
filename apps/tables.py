@@ -60,3 +60,17 @@ column_size_options={
                 'columnLimits': [
                     {'key': 'Role', 'minWidth': 900}],
             }
+
+get_row_style = {
+    "styleConditions": [
+        {
+            "condition": "params.data.rejection == 1",
+            "style": {"backgroundColor": "rgba(240, 128, 128, 0.3)"},
+        },
+        {
+            "condition": "params.data.hiring_manager_screen == 1",
+            "style": {"backgroundColor": "rgba(0, 203, 166, 0.3)"},
+        },
+    ],
+    # "defaultStyle": {"backgroundColor": "grey", "color": "white"},
+}

@@ -15,7 +15,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import dash_ag_grid as dag
 from google.cloud import bigquery
-from apps.tables import JOBcolumnDefs, defaultColDef, column_size_options
+from apps.tables import JOBcolumnDefs, defaultColDef, column_size_options, get_row_style
 from plotly_theme_light import plotly_light
 from main import app
 
@@ -181,8 +181,9 @@ layout = dbc.Container([
                 dashGridOptions={"undoRedoCellEditing": True, 
                 "cellSelection": "single",
                 "rowSelection": "single"},
+                getRowStyle=get_row_style,
                 csvExportParams={"fileName": "job_applications.csv", "columnSeparator": ","},
-                style = {'height': '600px', 'width': '100%', 'color': 'grey'}
+                style = {'height': '500px', 'width': '100%', 'color': 'grey'}
                 ),
             dbc.Button(
                 'Reload', id='reloadTop', n_clicks=0,
@@ -288,6 +289,7 @@ def display_modal(data, selected_cell, n_clicks):
     if n_clicks:
         return False, [], ""
     if selected_cell:
+        print(data[0])
         row = selected_cell['rowIndex']
         dff = pd.DataFrame(data)
         row_data = dff.iloc[row]
@@ -392,9 +394,9 @@ def pay_histogram(data):
 
     hist_data['pay'] = (hist_data['pay_max'] + hist_data['pay_min'])/2
     fig = go.Figure()
-    fig.add_trace(go.Histogram(x=hist_data['pay'], name='pay_min', opacity=0.85, nbinsx=20))
-    fig.add_trace(go.Histogram(x=hist_data['pay_min'], name='pay_min', opacity=0.2, nbinsx=20))
-    fig.add_trace(go.Histogram(x=hist_data['pay_max'], name='pay_max', opacity=0.2, nbinsx=20))
+    fig.add_trace(go.Histogram(x=hist_data['pay'], name='Pay (mean)', opacity=0.85, nbinsx=20))
+    fig.add_trace(go.Histogram(x=hist_data['pay_min'], name='Pay Range - Min', opacity=0.2, nbinsx=20))
+    fig.add_trace(go.Histogram(x=hist_data['pay_max'], name='Pay Range - Max', opacity=0.2, nbinsx=20))
     fig.update_layout(
         title='Pay Histogram',
         xaxis_title='Pay',
