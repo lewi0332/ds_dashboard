@@ -115,6 +115,19 @@ layout = dbc.Container([
             html.Br(),
             dbc.Input(id="platform", placeholder="Platform with the job posting"),
             html.Br(),
+            dbc.RadioItems(
+                id='resume-choice',
+                options=[
+                    {'label': 'Use Default Resume', 'value': 'default'},
+                    {'label': 'Add Custom Resume', 'value': 'custom'}
+                ],
+                value='default',
+                inline=True,
+                className="mt-3"
+            ),
+            html.Br(),
+            dbc.Textarea(id="custom-resume", placeholder="Enter custom resume here...", value=None, style={"height": "200px", "display": "none"}),
+            html.Br(),
             dbc.Textarea(id="job-description", placeholder="Enter job description here...", style={"height": "200px"}),
             dbc.Button("Generate Cover Letter", id="generate-button", color="primary", className="mt-3"),
             html.Div(id="cover-output-message", className="mt-3"),
@@ -153,6 +166,7 @@ layout = dbc.Container([
     Input('close', 'n_clicks'),
     State('company', 'value'),
     State('platform', 'value'),
+    State('custom-resume', 'value'),
     State('job-description', 'value'),
     State('username', 'value'),
     State('password', 'value'),
@@ -164,6 +178,7 @@ def update_graph_and_toggle_modal(
     close_n_clicks,
     company,
     platform,
+    custom_resume,
     job_description,
     username,
     password,
@@ -174,19 +189,31 @@ def update_graph_and_toggle_modal(
         return None, "", is_open
 
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if custom_resume is None:
+        custom_resume = RESUME
 
     if button_id == 'generate-button':
         if username and password and is_authenticated(username, password):
-            return generate(company=company, platform= platform, job_description=job_description), "Authenticated", False
+            return generate(company=company, platform= platform, job_description=job_description, resume=custom_resume), "Authenticated", False
         else:
             return None, "Login to use Cover Letter Generator", True
     elif button_id == 'login-button':
         if is_authenticated(username, password):
-            return generate(company=company, platform= platform, job_description=job_description), "Authenticated", False
+            return generate(company=company, platform= platform, job_description=job_description, resume=custom_resume), "Authenticated", False
         else:
-            time.sleep(2)
+            time.sleep(4)
             return None, "Authentication failed", True
     elif button_id == 'close':
         return None, "", False
 
     return None, "", is_open
+
+@app.callback(
+    Output('custom-resume', 'style'),
+    Input('resume-choice', 'value')
+)
+def toggle_custom_resume(resume_choice):
+    if resume_choice == 'custom':
+        return {"height": "200px", "display": "block"}
+    else:
+        return {"height": "200px", "display": "none"}
