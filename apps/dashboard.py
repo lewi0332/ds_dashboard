@@ -417,6 +417,10 @@ def build_sankey(data):
     ref_apps = data[(data['refferal']==1)&(data['recruiter_screen']==0)&(data['rejection']==0)]['application_id'].count()
     ref_to_screen = data[(data['refferal']==1) & (data['recruiter_screen']==1)]['application_id'].count()
     ref_to_rejection = data[(data['refferal']==1) & (data['rejection']==1)]['application_id'].count()
+    
+    rec_apps = data[(data['recruiter']==1)&(data['recruiter_screen']==0)&(data['rejection']==0)]['application_id'].count()
+    rec_to_screen = data[(data['recruiter']==1) & (data['recruiter_screen']==1)]['application_id'].count()
+    rec_to_rejection = data[(data['recruiter']==1) & (data['rejection']==1)]['application_id'].count()
 
     screen_to_hiring_man = data[(data['recruiter_screen']==1) & (data['hiring_manager_screen']==1)]['application_id'].count()
     screen_to_rejection = data[(data['recruiter_screen']==1) & (data['hiring_manager_screen']==0) & (data['rejection']==1)]['application_id'].count()
@@ -435,11 +439,11 @@ def build_sankey(data):
         pad = 15,
         thickness = 20,
         line = dict(color = "black", width = 0.5),
-        label = ["Cold Application", "Network Refferal", "Recruiter Screen", "Hiring Manager Screen", "Technical Screen", "No Response", "Rejection", "Offer"],
+        label = ["Cold Application", "Network Refferal", "Recruiter Initiated", "Recruiter Screen", "Hiring Manager Screen", "Technical Screen", "No Response", "Rejection", "Offer"],
         ),
         link = dict(
-        source = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4],
-        target = [2, 5, 6, 2, 5, 6, 3, 5, 6, 4, 5, 6, 5, 6, 7],
+        source = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5],
+        target = [3, 6, 7, 3, 6, 7, 3, 6, 7, 4, 6, 7, 5, 6, 7, 6, 7, 8],
         value = [
             ca_to_screen,
             cold_apps,
@@ -447,6 +451,9 @@ def build_sankey(data):
             ref_to_screen,
             ref_apps,
             ref_to_rejection,
+            rec_to_screen,
+            rec_apps,
+            rec_to_rejection,
             screen_to_hiring_man,
             screen_to_rejection,
             screen_to_no_response,
