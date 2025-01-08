@@ -2,7 +2,7 @@ name: dash
 channels:
   - conda-forge
 dependencies:
-  - python
+  - python=3.12
   - dash
   - dash-bootstrap-components
   - dash-daq
@@ -17,7 +17,11 @@ dependencies:
   - pip
   - google-cloud-bigquery
   - google-cloud-secret-manager
+  - google-cloud-storage
   - pyarrow
+  - scipy=1.12
+  - wordcloud
+  - gensim
   - pip:
       - dash-ag-grid
       - google-genai

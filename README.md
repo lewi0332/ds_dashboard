@@ -97,3 +97,17 @@ By default your application will be accessible to anyone in the world. To restri
 Cloud Build is a service that executes your builds on Google Cloud Platform infrastructure. Cloud Build can import source code from Google Cloud Storage, Cloud Source Repositories, GitHub, or Bitbucket, execute a build to your specifications, and produce artifacts such as Docker containers or Java archives.
 
 After the app has been deployed, you can use Cloud Build to automatically deploy the app when you push to GitHub. This is done by creating a `cloudbuild.yaml` file in the root directory of your project. This file contains the instructions for Cloud Build to deploy your app.
+
+
+---
+
+**Useful snippiets**
+
+Create the `requirements.txt` file:
+
+
+```
+conda activate dash
+
+pip list --format=freeze > requirements.txt
+```
