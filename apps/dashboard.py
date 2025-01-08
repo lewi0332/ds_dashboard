@@ -19,6 +19,33 @@ from apps.tables import JOBcolumnDefs, defaultColDef, column_size_options, get_r
 from plotly_theme_light import plotly_light
 from main import app
 
+from gensim.utils import simple_preprocess
+from gensim.parsing.preprocessing import STOPWORDS
+from collections import Counter
+from io import BytesIO
+from wordcloud import WordCloud
+import base64
+stopwords = STOPWORDS.union([
+    'order',
+    'food',
+    'get',
+    'business',
+    'product',
+    'team',
+    'data',
+    'work',
+    'new',
+    'needs',
+    'ensure',
+    'prefered',
+    'strong',
+    'ability',
+    'years',
+    'skills',
+    'proven',
+    ])
+
+
 pio.templates["plotly_light"] = plotly_light
 pio.templates.default = "plotly_light"
 
@@ -39,6 +66,21 @@ def load_data():
     dff = pd.read_parquet("gs://dashapp-375513.appspot.com/data.parquet")
     dff.sort_values(by='application_date', ascending=False, inplace=True)
     return dff.to_dict('records')
+
+def plot_wordcloud(data:pd.Series) -> BytesIO:
+    freq = Counter([item for sublist in data.to_list() for item in sublist])
+    wc = WordCloud(
+        background_color='white',
+        width=1000,
+        height=500
+    )
+    wc.fit_words(freq)
+    return wc.to_image()
+
+def make_word_cloud_image(dff):
+    img = BytesIO()
+    plot_wordcloud(data=dff.tokenized).save(img, format='PNG')
+    return 'data:image/png;base64,{}'.format(base64.b64encode(img.getvalue()).decode())
 
 
 # ---------------------------------------------------------------------
@@ -217,6 +259,11 @@ layout = dbc.Container([
         dbc.Col(
             dcc.Graph(id='sankey')),
     ]),
+    dbc.Row([
+        dbc.Col(
+            html.Img(id='wordcloud'),
+        ),
+    ]),
     dbc.Row(
         dbc.Col(
                 dcc.Markdown(id='codeblock',
@@ -299,7 +346,19 @@ def display_modal(data, selected_cell, n_clicks):
         return True, modal_body, "Job Application Details"
     return False, [], ""
 
-
+@app.callback(
+    Output('wordcloud', 'src'),
+    Input('datatable', 'rowData')
+)
+def update_wordcloud(data):
+    dff = pd.DataFrame(data)
+    # Preprocess the text data
+    dff['tokenized'] = dff['requirements'].map(
+        lambda doc: [word for word in simple_preprocess(doc) if word not in stopwords]
+        )
+    dff['tokenized'] = dff['tokenized'].apply(lambda x: [item for item in x if item.isalpha()])
+    wc = make_word_cloud_image(dff)
+    return wc
 
 # ---------------------------------------------------------------------
 # Python functions
