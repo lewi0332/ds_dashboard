@@ -402,7 +402,7 @@ def display_year(dff: pd.DataFrame):
     dates_in_year = [start_date + timedelta(i) for i in range(delta.days+1)] # list with datetimes for each day a year
     
 
-    text = [str(i) for i in dates_in_year] #gives something like list of strings like ‘2018-01-25’ for each date. Used in data trace to make good hovertext.
+    text = [str(i.date()) for i in dates_in_year] #gives something like list of strings like ‘2018-01-25’ for each date. Used in data trace to make good hovertext.
     #4cc417 green #347c17 dark green
     colorscale=[[False, '#eeeeee'], [True, '#76cf63']]
     
@@ -413,6 +413,7 @@ def display_year(dff: pd.DataFrame):
             z=df_trunc['count'].values,
             text=text,
             hoverinfo='text',
+            hovertemplate='Date: %{text}<br>Count: %{z}<extra></extra>',
             xgap=3, # this
             ygap=3, # and this is used to make the grid-like apperance
             showscale=False,
@@ -453,11 +454,43 @@ def pay_histogram(data):
 
     hist_data['pay'] = (hist_data['pay_max'] + hist_data['pay_min'])/2
     fig = go.Figure()
-    fig.add_trace(go.Histogram(x=hist_data['pay'], name='Pay (mean)', opacity=0.85, nbinsx=20))
-    fig.add_trace(go.Histogram(x=hist_data['pay_min'], name='Pay Range - Min', opacity=0.2, nbinsx=20))
-    fig.add_trace(go.Histogram(x=hist_data['pay_max'], name='Pay Range - Max', opacity=0.2, nbinsx=20))
+    fig.add_trace(
+        go.Histogram(
+            x=hist_data['pay'],
+            name='Pay (mean)',
+            opacity=0.85,
+            xbins=dict(size=5000)
+        )
+    )
+    fig.add_trace(go.Histogram(x=hist_data['pay_min'], name='Pay Range - Min', opacity=0.2, xbins=dict(size=5000)))
+    fig.add_trace(go.Histogram(x=hist_data['pay_max'], name='Pay Range - Max', opacity=0.2, xbins=dict(size=5000)))
+    # Add vertical line for the mean
+    fig.add_vline(
+        x=hist_data['pay'].mean(),
+        line_width=2,
+        line_dash="dash",
+        line_color="green",
+        annotation_text=f"Mean Pay:<br><b>${int(hist_data['pay'].mean()):,}</b>",
+        annotation_position="top right")
+    # Add vertical line for the min
+    fig.add_vline(
+        x=hist_data['pay_min'].mean(),
+        line_width=2,
+        line_dash="dash",
+        line_color='rgba(168, 168, 168, 0.7)',
+        annotation_text=f"Range Min:<br><b>${int(hist_data['pay_min'].mean()):,}</b>",
+        annotation_position="bottom right")
+    # Add vertical line for the max
+    fig.add_vline(
+        x=hist_data['pay_max'].mean(),
+        line_width=2,
+        line_dash="dash",
+        line_color="#19d3f3",
+        #line_opacity=0.7,
+        annotation_text=f"Range Max:<br><b>${int(hist_data['pay_max'].mean()):,}</b>",
+        annotation_position="bottom right")
     fig.update_layout(
-        title='Pay Histogram',
+        title='Pay',
         xaxis_title='Pay',
         yaxis_title='Count',
         barmode='overlay',
@@ -491,41 +524,53 @@ def build_sankey(data):
     hiring_to_rejection = data[(data['hiring_manager_screen']==1) & (data['technical_screen']==0) & (data['rejection']==1)]['application_id'].count()
     hiring_to_no_response = data[(data['hiring_manager_screen']==1) & (data['technical_screen']==0) & (data['rejection']==0)]['application_id'].count()
 
-    tech_to_offer = data[(data['technical_screen']==1) & (data['offer']==1)]['application_id'].count()
+    tech_to_offer = data[(data['technical_screen']==1) & (data['offer']==1)]['application_id'].count().astype(int)
     tech_to_rejection = data[(data['technical_screen']==1) & (data['offer']==0) & (data['rejection']==1)]['application_id'].count()
     tech_to_no_response = data[(data['technical_screen']==1) & (data['offer']==0) & (data['rejection']==0)]['application_id'].count()
 
     fig = go.Figure(data=[go.Sankey(
         node = dict(
-        pad = 15,
-        thickness = 20,
-        line = dict(color = "black", width = 0.5),
-        label = ["Cold Application", "Network Refferal", "Recruiter Initiated", "Recruiter Screen", "Hiring Manager Screen", "Technical Screen", "No Response", "Rejection", "Offer"],
-        ),
+            hovertemplate='%{label}:<br></b>%{value:0}<extra></extra>',
+            pad = 15,
+            thickness = 20,
+            line = dict(color = "black", width = 0.5),
+            label = [
+                'Cold Application',
+                'Network Refferal',
+                'Recruiter Initiated',
+                'Recruiter Screen',
+                'Hiring Manager Screen',
+                'Technical Screen',
+                'No Response',
+                'Rejection',
+                'Offer'],
+            ),
         link = dict(
-        source = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5],
-        target = [3, 6, 7, 3, 6, 7, 3, 6, 7, 4, 6, 7, 5, 6, 7, 6, 7, 8],
-        value = [
-            ca_to_screen,
-            cold_apps,
-            ca_to_rejection,
-            ref_to_screen,
-            ref_apps,
-            ref_to_rejection,
-            rec_to_screen,
-            rec_apps,
-            rec_to_rejection,
-            screen_to_hiring_man,
-            screen_to_rejection,
-            screen_to_no_response,
-            hiring_to_tech,
-            hiring_to_rejection,
-            hiring_to_no_response,
-            tech_to_offer,
-            tech_to_rejection,
-            tech_to_no_response
-            ]
-    ))])
+            source = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5],
+            target = [3, 6, 7, 3, 6, 7, 3, 6, 7, 4, 6, 7, 5, 6, 7, 6, 7, 8],
+            value = [
+                ca_to_screen,
+                cold_apps,
+                ca_to_rejection,
+                ref_to_screen,
+                ref_apps,
+                ref_to_rejection,
+                rec_to_screen,
+                rec_apps,
+                rec_to_rejection,
+                screen_to_hiring_man,
+                screen_to_rejection,
+                screen_to_no_response,
+                hiring_to_tech,
+                hiring_to_rejection,
+                hiring_to_no_response,
+                tech_to_offer,
+                tech_to_rejection,
+                tech_to_no_response
+                ],
+            hovertemplate='%{source.label} -> %{target.label}: %{value:0}<extra></extra>',
+            )
+        )])
 
     fig.update_layout(
         title_text="Application Journey (Sankey Diagram)",
