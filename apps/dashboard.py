@@ -19,13 +19,24 @@ from apps.tables import JOBcolumnDefs, defaultColDef, column_size_options, get_r
 from plotly_theme_light import plotly_light
 from main import app
 
-from gensim.utils import simple_preprocess
-from gensim.parsing.preprocessing import STOPWORDS
+# from gensim.utils import simple_preprocess
+# from gensim.parsing.preprocessing import STOPWORDS
 from collections import Counter
 from io import BytesIO
 from wordcloud import WordCloud
 import base64
-stopwords = STOPWORDS.union([
+
+
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+# Download the stopwords and punkt tokenizer if not already downloaded
+nltk.download('stopwords')
+nltk.download('punkt_tab')
+
+
+STOPWORDS = set(stopwords.words('english')).union([
     'order',
     'food',
     'get',
@@ -44,6 +55,7 @@ stopwords = STOPWORDS.union([
     'skills',
     'proven',
     ])
+
 
 
 pio.templates["plotly_light"] = plotly_light
@@ -353,16 +365,23 @@ def display_modal(data, selected_cell, n_clicks):
 def update_wordcloud(data):
     dff = pd.DataFrame(data)
     # Preprocess the text data
-    dff['tokenized'] = dff['requirements'].map(
-        lambda doc: [word for word in simple_preprocess(doc) if word not in stopwords]
-        )
-    dff['tokenized'] = dff['tokenized'].apply(lambda x: [item for item in x if item.isalpha()])
+    dff['tokenized'] = dff['requirements'].map(preprocess_text)
+    # dff['tokenized'] = dff['tokenized'].apply(lambda x: [item for item in x if item.isalpha()])
     wc = make_word_cloud_image(dff)
     return wc
 
 # ---------------------------------------------------------------------
 # Python functions
 # ---------------------------------------------------------------------
+
+# Function to preprocess text
+def preprocess_text(text):
+    # Tokenize the text
+    tokens = word_tokenize(text.lower())
+    # Remove stopwords
+    filtered_tokens = [word for word in tokens if word.isalnum() and word not in STOPWORDS]
+    return filtered_tokens
+
 
 
 def display_year(dff: pd.DataFrame):
