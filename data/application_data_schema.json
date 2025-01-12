@@ -1,0 +1,280 @@
+[
+  {
+    "mode": "REQUIRED",
+    "name": "application_id",
+    "type": "STRING",
+    "description": "Primary Key - Unique ID for each application"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "application_date",
+    "type": "DATE", 
+    "description": "Date the application was submitted"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "application_link",
+    "type": "STRING",
+    "description": "html link to the job description"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "company_name",
+    "type": "STRING",
+    "description": "Company name of hiring"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "job_title",
+    "type": "STRING",
+    "description": "Job Title"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "location",
+    "type": "STRING",
+    "description": "Location of Company Headquarters"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "office_participation",
+    "type": "STRING",
+    "description": "In-Office|Hybrid|Remote - How does the company expect the applicate to work"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "role_desc",
+    "type": "STRING",
+    "description": "Full text description of the role"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "responsibilities",
+    "type": "STRING",
+    "description": "Full text description of the responsibilities"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "requirements",
+    "type": "STRING",
+    "description": "Full text description of the requirements"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "pay_min",
+    "type": "INT64",
+    "description": "Minimum pay if suggested range is listed"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "pay_max",
+    "type": "INT64",
+    "description": "Maximum pay if suggested range is listed"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "cv_version",
+    "type": "STRING",
+    "description": "Path to cv"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "cover_letter",
+    "type": "STRING",
+    "description": "Path to cover letter"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "self_assessment",
+    "type": "INT64",
+    "description": "Self grade assesment of the fit between skills and responsibilitis. 0-100 by 5"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "core_skills",
+    "type": "STRUCT",
+    "fields": "<list ARRAY<STRUCT<element STRING>>>",
+    "description": "A list of strings representing specific skills and tools needed for the role"
+
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "llm",
+    "type": "BOOL",
+    "description": "Does the job require familarity with setting up or fine tuning LLM or anothes GenAI product?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "mmm",
+    "type": "BOOL",
+    "description": "Does the job require familarity with Marketing Mix Modeling?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "marketing",
+    "type": "BOOL",
+    "description": "Does the job require familarity with Marketing data?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retail",
+    "type": "BOOL",
+    "description": "Does the job require familarity with retail data such as inventory planning?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "healthcare",
+    "type": "BOOL",
+    "description": "Does the job require familarity with Healthcare data?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "finance",
+    "type": "BOOL",
+    "description": "Does the job require familarity with Finance data?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "senior_role",
+    "type": "BOOL",
+    "description": "Is the role considered Senior",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "staff_role",
+    "type": "BOOL",
+    "description": "Is the role considered Staff level?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "generalist_role",
+    "type": "BOOL",
+    "description": "Is the role expected to handle all general data science issues?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "management_role",
+    "type": "BOOL",
+    "description": "Does the role require people management?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "refferal",
+    "type": "BOOL",
+    "description": "Did a personal connection provide a refferal to the organization and/or hiring manager?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "recruiter",
+    "type": "BOOL",
+    "description": "Was the application initiated by a recruiter reaching out?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "application_source",
+    "type": "STRING",
+    "description": "Where was the job listing posted?"
+
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "recruiter_screen",
+    "type": "BOOL",
+    "description": "Has a recruiter screen been scheduled or completed?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "recruiter_screen_date",
+    "type": "DATE",
+    "description": "The date of the recruiter screen"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "hiring_manager_screen",
+    "type": "BOOL",
+    "description": "Has a hiring manager screen been scheduled or completed?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "hiring_manager_screen_date",
+    "type": "DATE",
+    "description": "The date of the hiring manager screen"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "technical_screen",
+    "type": "BOOL",
+    "description": "Has a technical screen been scheduled or completed?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "technical_screen_date",
+    "type": "DATE",
+    "description": "The date of the technical sreen"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "offer",
+    "type": "BOOL",
+    "description": "Has an offer of employment happened?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "offer_date",
+    "type": "DATE",
+    "description": "Date of offer of employment"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "rejection",
+    "type": "BOOL",
+    "description": "Has the application been rejected?",
+    "defaultValueExpression": "False"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "rejection_date",
+    "type": "DATE",
+    "description": "The date of the application rejection"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "technical_screen_type",
+    "type": "INT64",
+    "description": "interview|test|task how the technical screen is conducted"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "technical_screen_time",
+    "type": "INT64",
+    "description": "amount of time in minutes spent on technical screen"
+  },
+  {
+    "mode":"REQUIRED",
+    "name": "created_at",
+    "type":"TIMESTAMP",
+    "description": "Datetime when record was created"
+  },
+  {
+    "mode":"REQUIRED",
+    "name": "updated_at",
+    "type":"TIMESTAMP",
+    "description": "Datetime when record was last updated"
+  }
+]

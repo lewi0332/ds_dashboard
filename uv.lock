@@ -303,6 +303,21 @@ wheels = [
 ]
 
 [[package]]
+name = "db-dtypes"
+version = "1.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "pandas" },
+    { name = "pyarrow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/80/00d501391fc5450c37b5fe0c25596e629a9fa2868fe4f194d69c5622210e/db_dtypes-1.3.1.tar.gz", hash = "sha256:a058f05dab100891f3e76a7a3db9ad0f107f18dd3d1bdd13680749a2f07eae77", size = 32492 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a2/e0/2eeacbe14b5a3a3b4ad5fd2c1e7959bd2201e4daeba851579fa78e5eccb1/db_dtypes-1.3.1-py2.py3-none-any.whl", hash = "sha256:fbc9d1740d94aaf2b5ae24601cfc875a69b4635bb9d049e3c3036e9f10203af8", size = 18742 },
+]
+
+[[package]]
 name = "debugpy"
 version = "1.8.11"
 source = { registry = "https://pypi.org/simple" }
@@ -337,6 +352,7 @@ dependencies = [
     { name = "dash-ag-grid" },
     { name = "dash-bootstrap-components" },
     { name = "dash-daq" },
+    { name = "db-dtypes" },
     { name = "flask" },
     { name = "google-cloud-bigquery" },
     { name = "google-cloud-secret-manager" },
@@ -346,6 +362,7 @@ dependencies = [
     { name = "nltk" },
     { name = "pandas" },
     { name = "pyarrow" },
+    { name = "pydantic" },
     { name = "wordcloud" },
 ]
 
@@ -353,6 +370,7 @@ dependencies = [
 dev = [
     { name = "ipykernel" },
     { name = "nbformat" },
+    { name = "pandas-gbq" },
 ]
 
 [package.metadata]
@@ -361,6 +379,7 @@ requires-dist = [
     { name = "dash-ag-grid", specifier = ">=31.3.0" },
     { name = "dash-bootstrap-components", specifier = ">=1.6.0" },
     { name = "dash-daq", specifier = ">=0.5.0" },
+    { name = "db-dtypes", specifier = ">=1.3.1" },
     { name = "flask", specifier = ">=3.0.3" },
     { name = "google-cloud-bigquery", specifier = ">=3.27.0" },
     { name = "google-cloud-secret-manager", specifier = ">=2.22.0" },
@@ -370,6 +389,7 @@ requires-dist = [
     { name = "nltk", specifier = ">=3.9.1" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pyarrow", specifier = ">=18.1.0" },
+    { name = "pydantic", specifier = ">=2.10.5" },
     { name = "wordcloud", specifier = ">=1.9.4" },
 ]
 
@@ -377,6 +397,7 @@ requires-dist = [
 dev = [
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "nbformat", specifier = ">=5.10.4" },
+    { name = "pandas-gbq", specifier = ">=0.26.1" },
 ]
 
 [[package]]
@@ -472,6 +493,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/46/af/b25763b9d35dfc2c6f9c3ec34d8d3f1ba760af3a7b7e8d5c5f0579522c45/google_auth-2.37.0.tar.gz", hash = "sha256:0054623abf1f9c83492c63d3f47e77f0a544caa3d40b2d98e099a611c2dd5d00", size = 268878 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8d/8d/4d5d5f9f500499f7bd4c93903b43e8d6976f3fc6f064637ded1a85d09b07/google_auth-2.37.0-py2.py3-none-any.whl", hash = "sha256:42664f18290a6be591be5329a96fe30184be1a1badb7292a7f686a9659de9ca0", size = 209829 },
+]
+
+[[package]]
+name = "google-auth-oauthlib"
+version = "1.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-auth" },
+    { name = "requests-oauthlib" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cc/0f/1772edb8d75ecf6280f1c7f51cbcebe274e8b17878b382f63738fd96cee5/google_auth_oauthlib-1.2.1.tar.gz", hash = "sha256:afd0cad092a2eaa53cd8e8298557d6de1034c6cb4a740500b5357b648af97263", size = 24970 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/8e/22a28dfbd218033e4eeaf3a0533b2b54852b6530da0c0fe934f0cc494b29/google_auth_oauthlib-1.2.1-py2.py3-none-any.whl", hash = "sha256:2d58a27262d55aa1b87678c3ba7142a080098cbc2024f903c62355deb235d91f", size = 24930 },
 ]
 
 [[package]]
@@ -1042,6 +1076,15 @@ wheels = [
 ]
 
 [[package]]
+name = "oauthlib"
+version = "3.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6d/fa/fbf4001037904031639e6bfbfc02badfc7e12f137a8afa254df6c4c8a670/oauthlib-3.2.2.tar.gz", hash = "sha256:9859c40929662bec5d64f34d01c99e093149682a3f38915dc0655d5a633dd918", size = 177352 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/80/cab10959dc1faead58dc8384a781dfbf93cb4d33d50988f7a69f1b7c9bbe/oauthlib-3.2.2-py3-none-any.whl", hash = "sha256:8139f29aac13e25d502680e9e19963e83f16838d48a0d71c287fe40e7067fbca", size = 151688 },
+]
+
+[[package]]
 name = "packaging"
 version = "24.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1082,6 +1125,28 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/25/b0/98d6ae2e1abac4f35230aa756005e8654649d305df9a28b16b9ae4353bff/pandas-2.2.3-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1db71525a1538b30142094edb9adc10be3f3e176748cd7acc2240c2f2e5aa3a4", size = 11871013 },
     { url = "https://files.pythonhosted.org/packages/cc/57/0f72a10f9db6a4628744c8e8f0df4e6e21de01212c7c981d31e50ffc8328/pandas-2.2.3-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:15c0e1e02e93116177d29ff83e8b1619c93ddc9c49083f237d4312337a61165d", size = 15711620 },
     { url = "https://files.pythonhosted.org/packages/ab/5f/b38085618b950b79d2d9164a711c52b10aefc0ae6833b96f626b7021b2ed/pandas-2.2.3-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:ad5b65698ab28ed8d7f18790a0dc58005c7629f227be9ecc1072aa74c0c1d43a", size = 13098436 },
+]
+
+[[package]]
+name = "pandas-gbq"
+version = "0.26.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "db-dtypes" },
+    { name = "google-api-core" },
+    { name = "google-auth" },
+    { name = "google-auth-oauthlib" },
+    { name = "google-cloud-bigquery" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "pandas" },
+    { name = "pyarrow" },
+    { name = "pydata-google-auth" },
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/80/5a/85122a3f46d1749b083c4679add5af68a8b0e5332af897a76c5eca05646f/pandas_gbq-0.26.1.tar.gz", hash = "sha256:8c5a4478ca822e857bcc853a5e8999273a147ffffbc44a38dde93fd9c4f240bb", size = 62747 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/81/f5/e6821937a5a08654e7550ebc3853ccbc2bfe411a0f6f5928b7e9d8876d99/pandas_gbq-0.26.1-py2.py3-none-any.whl", hash = "sha256:327ba959fb9520356f32294fa6028a6fbeccbb4c64d09658363140f7303599a8", size = 37078 },
 ]
 
 [[package]]
@@ -1348,6 +1413,20 @@ wheels = [
 ]
 
 [[package]]
+name = "pydata-google-auth"
+version = "1.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-auth" },
+    { name = "google-auth-oauthlib" },
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/96/92/51140850fa44d33f41a393df4767d3f7bd63169e1edc2358397f2a5b57bb/pydata-google-auth-1.9.0.tar.gz", hash = "sha256:2f546e88f007dfdb050087556eb46d6008e351386a7b368096797fae5df374f2", size = 29791 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/34/91cf24101f7c456c0d9be43b975396772481c26e4b218c78f71769ee0555/pydata_google_auth-1.9.0-py2.py3-none-any.whl", hash = "sha256:e17a44ce8de5b48883667357c03595b85d80938bf1fb714d65bfac9a9f9c8add", size = 15552 },
+]
+
+[[package]]
 name = "pygments"
 version = "2.19.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1507,6 +1586,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/63/70/2bf7780ad2d390a8d301ad0b550f1581eadbd9a20f896afe06353c2a2913/requests-2.32.3.tar.gz", hash = "sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760", size = 131218 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f9/9b/335f9764261e915ed497fcdeb11df5dfd6f7bf257d4a6a2a686d80da4d54/requests-2.32.3-py3-none-any.whl", hash = "sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6", size = 64928 },
+]
+
+[[package]]
+name = "requests-oauthlib"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "oauthlib" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/f2/05f29bc3913aea15eb670be136045bf5c5bbf4b99ecb839da9b422bb2c85/requests-oauthlib-2.0.0.tar.gz", hash = "sha256:b3dffaebd884d8cd778494369603a9e7b58d29111bf6b41bdc2dcd87203af4e9", size = 55650 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3b/5d/63d4ae3b9daea098d5d6f5da83984853c1bbacd5dc826764b249fe119d24/requests_oauthlib-2.0.0-py2.py3-none-any.whl", hash = "sha256:7dd8a5c40426b779b0868c404bdef9768deccf22749cde15852df527e6269b36", size = 24179 },
 ]
 
 [[package]]

@@ -172,3 +172,5 @@ cython_debug/
 
 notes.md
 resume.txt
+data/data.parquet
+data/schema.sql

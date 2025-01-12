@@ -1,18 +1,18 @@
-import os
 import time
-import json
 from datetime import date
 import pandas as pd
 import dash_daq as daq
 import dash
 import dash_bootstrap_components as dbc
 from dash import dcc, html, Input, Output, State, ctx
-from google.cloud import bigquery, secretmanager
+from google.cloud import bigquery
 from main import app
-# Google BigQuery client
-# client = bigquery.Client()
-
-from apps.utils import access_secret_version, upload_options_to_gcs, read_options_from_gcs
+from data.datamodel import Application, application_form_fields
+from apps.utils import (
+    access_secret_version,
+    upload_options_to_gcs,
+    read_options_from_gcs,
+    upsert_data_to_bigQuery_table)
 
 VALID_USERNAME_PASSWORD_PAIRS = access_secret_version("dashapp-375513", "VALID_USERNAME_PASSWORD_PAIRS", "latest", json_type=True)
 
@@ -45,7 +45,7 @@ layout = dbc.Container([
         dbc.Col([
             html.Br(),
             dbc.Button("Start New Application", id="new-button", class_name='view-page-button-style' ),
-            html.Div(id="load-output-message", className="mt-3"),
+            html.Div(id="load-output-message", className="mt-3"),    
             html.Div(id="new-output-message", className="mt-3")
         ]),
         dbc.Col(width=1),
@@ -183,9 +183,8 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             dbc.Label("Application Source"),
-            dcc.Dropdown(
-                # read_options_from_gcs(BUCKET_NAME, "application_source_list.json"),
-                options= ['Indeed', 'Glassdoor', 'Monster', 'LinkedIn', 'BuiltIn', 'Company Website'],
+            dcc.Dropdown(read_options_from_gcs(BUCKET_NAME, "application_source_list.json"),
+                # options= ['Indeed', 'Glassdoor', 'Monster', 'LinkedIn', 'BuiltIn', 'Company Website'],
                 value= 'LinkedIn',
                 id='app-source-dropdown',
             ),
@@ -288,7 +287,12 @@ layout = dbc.Container([
                 dbc.Button("Delete", id="delete-button", class_name='view-page-button-style',),
         ]),
         dbc.Col([
-                html.Div(id="output-message", className="mt-3")
+            dcc.Loading(id='loading_icon',
+                    children=[
+                        html.Div(id="output-message", className="mt-3")
+                    ],
+                    type='default'
+                ),
         ]),
         dbc.Col(width=2),
     ]),
@@ -339,179 +343,80 @@ def is_authenticated(username, password):
     Input("submit-button", "n_clicks"),
     Input('login-button', 'n_clicks'),
     Input('close', 'n_clicks'),
-    State("current-application-store", "data"),
-    State("application-id", "value"),
-    State("application-date", "date"),
-    State("application-link", "value"),
-    State("company-input", "value"),
-    State("job-title-input", "value"),
-    State("location-input", "value"),
-    State("office-participation-dropdown", "value"),
-    State("role-desc-input", "value"),
-    State("responsibilities-input", "value"),
-    State("requirements-input", "value"),
-    State("pay-min-input", "value"),
-    State("pay-max-input", "value"),
-    State("cv-version-input", "value"),
-    State("cover-letter-input", "value"),
-    State("self-assessment-slider", "value"),
-    State("core-skills-dropdown", "value"),
-    State("llm-switch", "on"),
-    State("mmm-switch", "on"),
-    State("marketing-switch", "on"),
-    State("retail-switch", "on"),
-    State("healthcare-switch", "on"),
-    State("finance-switch", "on"),
-    State("senior-role-switch", "on"),
-    State("staff-role-switch", "on"),
-    State("generalist-switch", "on"),
-    State("management-switch", "on"),
-    State("refferal-switch", "on"),
-    State("recruiter-switch", "on"),
-    State("recruiter-screen-switch", "on"),
-    State("recruiter-screen-date", "date"),
-    State("hiring-manager-screen-switch", "on"),
-    State("hiring-manager-screen-date", "date"),
-    State("technical-screen-switch", "on"),
-    State("technical-screen-date", "date"),
-    State("technical-screen-type", "value"),
-    State("technical-screen-time", "value"),
-    State("offer-switch", "on"),
-    State("offer-date", "date"),
-    State("rejection-switch", "on"),
-    State("rejection-date", "date"),
     State('username', 'value'),
     State('password', 'value'),
     State('modal', 'is_open'),
+    [State(i[0], i[1]) for i in application_form_fields],
     prevent_initial_call=True
 )
 def update_bigquery(submit_n_clicks,
                     login_n_clicks,
                     close_n_clicks,
-                    raw_data,
-                    app_id,
-                    application_date,
-                    app_link,
-                    company,
-                    job_title,
-                    location,
-                    office_participation,
-                    role_desc,
-                    responsibilities,
-                    requirements,
-                    pay_min,
-                    pay_max,
-                    cv_version,
-                    cover_letter,
-                    self_assessment,
-                    core_skills,
-                    llm,
-                    mmm,
-                    marketing,
-                    retail,
-                    healthcare,
-                    finance,
-                    senior_role,
-                    staff_role,
-                    generalist_role,
-                    management_role,
-                    refferal,
-                    recruiter,
-                    recruiter_screen,
-                    recruiter_screen_date,
-                    hiring_manager_screen,
-                    hiring_manager_screen_date,
-                    technical_screen,
-                    technical_screen_date,
-                    technical_screen_type,
-                    technical_screen_time,
-                    offer,
-                    offer_date,
-                    rejection,
-                    rejection_date,
                     username,
                     password,
-                    is_open):
-    button_id = dash.callback_context
+                    is_open,
+                    *args):
+    
+    # Extract the dynamically passed arguments
+    raw_data = args[:len(application_form_fields)]
 
+    button_id = dash.callback_context
     button_id = button_id.triggered[0]['prop_id'].split('.')[0]
 
     if button_id == 'submit-button':
         if username and password and is_authenticated(username, password):
-            dff = pd.DataFrame(raw_data)
-
-            if not app_id \
-            or not application_date\
-            or not company \
-            or not job_title:
-                return "Missing required fields."
-
-            # Define the BigQuery table
-            # table_id = "your_project.your_dataset.your_table"
-
-            if pay_min == '':
-                pay_min = 0
-            if pay_max == '':
-                pay_max = 0
-
-            rows_to_insert = [
-                    {"application_id": app_id,
-                    "application_date": application_date,
-                    "application_link": app_link,
-                    "company_name": company, 
-                    "job_title": job_title,
-                    "location": location,
-                    "office_participation": office_participation,
-                    "role_desc": role_desc,
-                    "responsibilities": responsibilities,
-                    "requirements": requirements,
-                    "pay_min": pay_min,
-                    "pay_max": pay_max,
-                    "cv_version": cv_version,
-                    "cover_letter": cover_letter,
-                    "self_assessment": self_assessment,
-                    "core_skills": core_skills,
-                    "llm": llm,
-                    "mmm": mmm,
-                    "marketing": marketing,
-                    "retail": retail,
-                    "healthcare": healthcare,
-                    "finance": finance,
-                    "senior_role": senior_role,
-                    "staff_role": staff_role,
-                    "generalist_role": generalist_role,
-                    "management_role": management_role,
-                    "refferal": refferal,
-                    "recruiter": recruiter,
-                    "recruiter_screen": recruiter_screen,
-                    "recruiter_screen_date": recruiter_screen_date,
-                    "hiring_manager_screen": hiring_manager_screen,
-                    "hiring_manager_screen_date": hiring_manager_screen_date,
-                    "technical_screen": technical_screen,
-                    "technical_screen_date": technical_screen_date,
-                    "technical_screen_type": technical_screen_type,
-                    "technical_screen_time": technical_screen_time,
-                    "offer": offer,
-                    "offer_date": offer_date,
-                    "rejection": rejection,
-                    "rejection_date": rejection_date
-                }
-            ]
-
-            new_row = pd.DataFrame(rows_to_insert)
-
-            if app_id in dff["application_id"].values:
-                dff.drop(dff[dff["application_id"] == app_id].index, inplace=True)
-                dff = pd.concat([dff, new_row], ignore_index=True)
-            else:
-                dff = pd.concat([dff, new_row], ignore_index=True)
-
-            dff.to_parquet("gs://dashapp-375513.appspot.com/data.parquet", index=False)
+            print(raw_data)
+            # Extract the values from the form and create an Application object
+            app = Application(
+                application_id = raw_data[0],
+                application_date = raw_data[1],
+                application_link = raw_data[2],
+                company_name = raw_data[3],
+                job_title = raw_data[4],
+                location = raw_data[5],
+                office_participation = raw_data[6],
+                role_desc = raw_data[7],
+                responsibilities = raw_data[8],
+                requirements = raw_data[9],
+                pay_min = raw_data[10],
+                pay_max = raw_data[11],
+                cv_version = raw_data[12],
+                cover_letter = raw_data[13],
+                self_assessment = raw_data[14],
+                core_skills = raw_data[15],
+                llm = raw_data[16],
+                mmm = raw_data[17],
+                marketing = raw_data[18],
+                retail = raw_data[19],
+                healthcare = raw_data[20],
+                finance = raw_data[21],
+                senior_role = raw_data[22],
+                staff_role = raw_data[23],
+                generalist_role = raw_data[24],
+                management_role = raw_data[25],
+                refferal = raw_data[26],
+                recruiter = raw_data[27],
+                app_source = raw_data[28],
+                recruiter_screen = raw_data[29],
+                recruiter_screen_date = raw_data[30],
+                hiring_manager_screen = raw_data[31],
+                hiring_manager_screen_date = raw_data[32],
+                technical_screen = raw_data[33],
+                technical_screen_date = raw_data[34],
+                technical_screen_type = raw_data[35],
+                technical_screen_time = raw_data[36],
+                offer = raw_data[37],
+                offer_date = raw_data[38],
+                rejection = raw_data[39],
+                rejection_date = raw_data[40]
+            )
             
-            # TODO Insert the row into BigQuery
-            errors = []
-            if errors == []:
-                return f"Application {app_id} submitted successfully.", False, 1
+            job = upsert_data_to_bigQuery_table(app)
+            job.result()
+            errors = job.errors
+
+            if errors == [] or errors is None:
+                return f"Application {app.application_id} submitted successfully.", False, 1
             else:
                 return f"Encountered errors while inserting rows in Bigquery: {errors}", False, None
         else:
@@ -543,9 +448,15 @@ def load_data(n_clicks):
     """
     if n_clicks is None:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update
-    
-    dff = pd.read_parquet("gs://dashapp-375513.appspot.com/data.parquet")
-
+    client = bigquery.Client()
+    query = """
+    SELECT
+        application_id,
+        company_name,
+        job_title
+    FROM `dashapp-375513.data_science_job_hunt.applications`
+    """
+    dff = client.query(query).to_dataframe()
     if dff.empty:
         return "No data available.", [], None, None
     dff[['application_id', 'company_name', 'job_title']] = dff[['application_id', 'company_name', 'job_title']].fillna('').astype(str)
@@ -556,44 +467,7 @@ def load_data(n_clicks):
 
 # Callback to load the selected application
 @app.callback(
-    Output("application-id", "value"),
-    Output("application-date", "date"),
-    Output("application-link", "value"),
-    Output("company-input", "value"),
-    Output("job-title-input", "value"),
-    Output("location-input", "value"),
-    Output("office-participation-dropdown", "value"),
-    Output("role-desc-input", "value"),
-    Output("responsibilities-input", "value"),
-    Output("requirements-input", "value"),
-    Output("pay-min-input", "value"),
-    Output("pay-max-input", "value"),
-    Output("cv-version-input", "value"),
-    Output("cover-letter-input", "value"),
-    Output("self-assessment-slider", "value"),
-    Output("core-skills-dropdown", "value"),
-    Output("llm-switch", "on"),
-    Output("mmm-switch", "on"),
-    Output("marketing-switch", "on"),
-    Output("retail-switch", "on"),
-    Output("healthcare-switch", "on"),
-    Output("finance-switch", "on"),
-    Output("senior-role-switch", "on"),
-    Output("staff-role-switch", "on"),
-    Output("generalist-switch", "on"),
-    Output("management-switch", "on"),
-    Output("refferal-switch", "on"),
-    Output("recruiter-switch", "on"),
-    Output("recruiter-screen-switch", "on"),
-    Output("recruiter-screen-date", "date"),
-    Output("hiring-manager-screen-switch", "on"),
-    Output("hiring-manager-screen-date", "date"),
-    Output("technical-screen-switch", "on"),
-    Output("technical-screen-date", "date"),
-    Output("offer-switch", "on"),
-    Output("offer-date", "date"),
-    Output("rejection-switch", "on"),
-    Output("rejection-date", "date"),
+    [Output(i[0], i[1]) for i in application_form_fields],
     Input("load-application-button", "n_clicks"),
     Input("new-button", "n_clicks"),
     State("current-application-dropdown", "value"),
@@ -608,52 +482,36 @@ def load_application(edit_clicks, new_clicks, application_id, raw_data):
         dff = pd.DataFrame(raw_data)
         dff['application_id'] = dff['application_id'].astype(int)
         new_id = dff['application_id'].max() + 1
-        return str(new_id), date.today(), "", "", "", "", "Hybrid", "", "", "", "", "", "", "", 50, ['python', 'pandas', 'sql'], False, False, False, False, False, False, False, False, False, False, False, False, False, None, False, None, False, None, False, None, False, None
+        new_app = Application(application_id = str(new_id), company_name = 'Enter Company Name', job_title = 'Job Title')
+        
+        # get a tuple of the default values
+        new_app = tuple(new_app.model_dump().values())
+        
+        return new_app
+    
     elif triggered_id == 'load-application-button':
-        dff = pd.DataFrame(raw_data)
-        row = dff[dff["application_id"] == application_id].iloc[0]
-        if row["refferal"] == None:
-            row["refferal"] = False
-        return (
-            row["application_id"],
-            row["application_date"],
-            row["application_link"],
-            row["company_name"],
-            row["job_title"],
-            row["location"],
-            row["office_participation"],
-            row["role_desc"],
-            row["responsibilities"],
-            row["requirements"],
-            row["pay_min"],
-            row["pay_max"],
-            row["cv_version"],
-            row["cover_letter"],
-            row["self_assessment"],
-            row["core_skills"],
-            row["llm"],
-            row["mmm"],
-            row["marketing"],
-            row["retail"],
-            row["healthcare"],
-            row["finance"],
-            row["senior_role"],
-            row["staff_role"],
-            row["generalist_role"],
-            row["management_role"],
-            row["refferal"],
-            row["recruiter"],
-            row["recruiter_screen"],
-            row["recruiter_screen_date"],
-            row["hiring_manager_screen"],
-            row["hiring_manager_screen_date"],
-            row["technical_screen"],
-            row["technical_screen_date"],
-            row["offer"],
-            row["offer_date"],
-            row["rejection"],
-            row["rejection_date"]
-        )
+        # Load the record form bigquery where application_id = application_id store it as an Application object
+
+        client = bigquery.Client()
+        query = f"""
+        SELECT * FROM `dashapp-375513.data_science_job_hunt.applications` WHERE application_id = '{application_id}'
+        """
+        # bigquery_data = client.query(query).to_dataframe()
+        query_job = client.query(query)  # API request
+        rows = query_job.result()
+        
+        # store the data in a tuple
+        row = list(rows)[0]
+        row = dict(row)
+        row['core_skills'] = [row['core_skills']['list'][i]['element'] for i in range(len(row['core_skills']['list']))]
+
+        row.values()
+
+        # Remove the created_at and updated_at fields
+        row.pop('created_at')
+        row.pop('updated_at')
+
+        return [row[i[2]] for i in application_form_fields]
 
 
 # Add a delete button to delete the selected application with confirmation modal
@@ -687,10 +545,17 @@ def handle_delete_modal(delete_clicks, delete_confirmed_clicks, is_open, applica
         if button_id == "delete-button":
             return True, dash.no_update, False, None
         elif button_id == "delete-confirmed":
-            dff = pd.DataFrame(raw_data)
-            dff.drop(dff[dff["application_id"] == application_id].index, inplace=True)
-            dff.to_parquet("gs://dashapp-375513.appspot.com/data.parquet", index=False)
-            return False, f"Application {application_id} deleted successfully.", False, 1
+            client = bigquery.Client()
+            query = f"""
+            DELETE FROM `dashapp-375513.data_science_job_hunt.applications` WHERE application_id = '{application_id}'
+            """
+            query_job = client.query(query)  # API request
+            query_job.result() # Wait for the job to complete
+            errors = query_job.errors
+            if errors == [] or errors is None:
+                return False, f"Application {application_id} deleted successfully.", False, 1
+            else:
+                return False, f"Encountered errors while deleting rows in Bigquery: {errors}", False, None
         return is_open, dash.no_update, False, None
     else:
         return False, "Authentication failed", True, None
@@ -705,7 +570,6 @@ def handle_delete_modal(delete_clicks, delete_confirmed_clicks, is_open, applica
     prevent_initial_call=True
 )
 def add_core_skill(skill_options, n_submit, new_skill):
-    print(n_submit)
     if n_submit is None or n_submit < 1:
         return dash.no_update
     elif new_skill is None:
@@ -725,12 +589,10 @@ def add_core_skill(skill_options, n_submit, new_skill):
     prevent_initial_call=True
 )
 def add_app_source(source_options, n_submit, new_source):
-    print(n_submit)
-    print(new_source)
     if n_submit is None or n_submit < 1:
         return dash.no_update
     elif new_source is None:
         return dash.no_update
     source_options.append(new_source)
-    upload_options_to_gcs(source_options, BUCKET_NAME, "app_source_list.json")
+    upload_options_to_gcs(source_options, BUCKET_NAME, "application_source_list.json")
     return source_options, None

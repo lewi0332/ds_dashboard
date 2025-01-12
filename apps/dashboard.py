@@ -61,7 +61,7 @@ STOPWORDS = set(stopwords.words('english')).union([
 pio.templates["plotly_light"] = plotly_light
 pio.templates.default = "plotly_light"
 
-client = bigquery.Client(project='dashapp-375513')
+
 
 # Table settings
 CELL_PADDING = 5
@@ -75,7 +75,12 @@ FONTSIZE = 12
 # ---------------------------------------------------------------------
 
 def load_data():
-    dff = pd.read_parquet("gs://dashapp-375513.appspot.com/data.parquet")
+    client = bigquery.Client(project='dashapp-375513')
+    query = """
+    SELECT * FROM data_science_job_hunt.applications
+    """
+    query_job = client.query(query)
+    dff = query_job.to_dataframe()
     dff.sort_values(by='application_date', ascending=False, inplace=True)
     return dff.to_dict('records')
 
