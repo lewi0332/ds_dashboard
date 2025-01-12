@@ -7,7 +7,7 @@ import datetime
 import pytz
 from google.cloud import secretmanager, storage, bigquery
 from google.cloud.exceptions import NotFound
-from data.datamodel import Application
+from data_utils.datamodel import Application
 
 # Get the Chicago timezone
 chicago_tz = pytz.timezone('America/Chicago')

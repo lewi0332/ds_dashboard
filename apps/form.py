@@ -7,7 +7,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html, Input, Output, State, ctx
 from google.cloud import bigquery
 from main import app
-from data.datamodel import Application, application_form_fields
+from data_utils.datamodel import Application, application_form_fields
 from apps.utils import (
     access_secret_version,
     upload_options_to_gcs,
