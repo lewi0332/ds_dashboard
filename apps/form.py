@@ -365,7 +365,6 @@ def update_bigquery(submit_n_clicks,
 
     if button_id == 'submit-button':
         if username and password and is_authenticated(username, password):
-            print(raw_data)
             # Extract the values from the form and create an Application object
             app = Application(
                 application_id = raw_data[0],
@@ -574,7 +573,6 @@ def add_core_skill(skill_options, n_submit, new_skill):
         return dash.no_update
     elif new_skill is None:
         return dash.no_update
-    print(skill_options)
     skill_options.append(new_skill)
     upload_options_to_gcs(skill_options, BUCKET_NAME, "core_skills_list.json")
     return skill_options, None

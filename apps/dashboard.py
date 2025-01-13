@@ -353,7 +353,6 @@ def display_modal(data, selected_cell, n_clicks):
     if n_clicks:
         return False, [], ""
     if selected_cell:
-        print(data[0])
         row = selected_cell['rowIndex']
         dff = pd.DataFrame(data)
         row_data = dff.iloc[row]

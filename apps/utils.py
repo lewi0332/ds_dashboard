@@ -175,8 +175,16 @@ def upsert_data_to_bigQuery_table(
     
     application_dict = application_upsert.model_dump()
 
-    application_dict['application_date'] = '2024-01-01'
+
     application_dict['core_skills']  = {'list':[{'element':i} for i in application_dict['core_skills']]}
+
+    # convert date to string
+    application_dict['application_date'] = str(application_dict['application_date'])
+
+    # TODO: build this into pydantic model
+    for i in ['recruiter_screen_date', 'hiring_manager_screen_date', 'technical_screen_date', 'offer_date', 'rejection_date']:
+        if application_dict[i] is not None:
+            application_dict[i] = str(application_dict[i])
 
     # add timezones for Chicago
     application_dict['created_at'] = str(datetime.datetime.now().astimezone(pytz.timezone('America/Chicago')))
