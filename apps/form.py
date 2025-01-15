@@ -455,7 +455,7 @@ def load_data(n_clicks):
         job_title
     FROM `dashapp-375513.data_science_job_hunt.applications`
     """
-    dff = client.query(query).to_dataframe()
+    dff = client.query_and_wait(query).to_dataframe()
     if dff.empty:
         return "No data available.", [], None, None
     dff[['application_id', 'company_name', 'job_title']] = dff[['application_id', 'company_name', 'job_title']].fillna('').astype(str)
@@ -495,7 +495,6 @@ def load_application(edit_clicks, new_clicks, application_id, raw_data):
         query = f"""
         SELECT * FROM `dashapp-375513.data_science_job_hunt.applications` WHERE application_id = '{application_id}'
         """
-        # bigquery_data = client.query(query).to_dataframe()
         query_job = client.query(query)  # API request
         rows = query_job.result()
         

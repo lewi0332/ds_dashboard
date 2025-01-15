@@ -109,10 +109,10 @@ navbar = dbc.Navbar(
         ),
     ],
     className="w-100",
-    ),
-    color="white",
-    dark=False,
-    className="mb-4",
+    )
+    , color="white"
+    , dark=False
+    , className="mb-4"
 )
 
 
@@ -155,8 +155,7 @@ app.layout = html.Div([
         'margin-left': '50px',
         'float': 'right'
     })
-
-] )
+])
 
 
 @app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])

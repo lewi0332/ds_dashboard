@@ -32,8 +32,8 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
 # Download the stopwords and punkt tokenizer if not already downloaded
-nltk.download('stopwords')
-nltk.download('punkt_tab')
+nltk.download('stopwords', quiet=True)
+nltk.download('punkt_tab', quiet=True)
 
 
 STOPWORDS = set(stopwords.words('english')).union([
@@ -79,7 +79,7 @@ def load_data():
     query = """
     SELECT * FROM data_science_job_hunt.applications
     """
-    query_job = client.query(query)
+    query_job = client.query_and_wait(query)
     dff = query_job.to_dataframe()
     dff.sort_values(by='application_date', ascending=False, inplace=True)
     return dff.to_dict('records')
@@ -277,8 +277,10 @@ layout = dbc.Container([
             dcc.Graph(id='sankey')),
     ]),
     dbc.Row([
+        # Center this column
         dbc.Col(
             html.Img(id='wordcloud'),
+        
         ),
     ]),
     dbc.Row(
@@ -294,7 +296,9 @@ layout = dbc.Container([
         style={"maxHeight": "400px", "overflow": "scroll"}
     ),
     html.Br(),
-])
+],
+fluid=True
+)
 
 # ---------------------------------------------------------------------
 # Callbacks
@@ -310,14 +314,17 @@ def load_initial_data(data, n_clicks):
         data = load_data()
     return data
 
-# update commit map
+# update Main visualizations
 @app.callback(
     Output('commit-map', 'figure'),
     Output('pay-histogram', 'figure'),
     Output('sankey', 'figure'),
-    Input('datatable', 'rowData')
+    Input('datatable', 'virtualRowData'),
+    prevent_initial_call=True
 )
 def update_visuals(data):
+    if len(data) == 0:
+        return go.Figure(), go.Figure(), go.Figure()
     dff = pd.DataFrame(data)
     commit_map = display_year(dff)
     pay_hist = pay_histogram(dff)
@@ -329,9 +336,12 @@ def update_visuals(data):
     Output('rejection-count', 'children'),
     Output('responses', 'children'),
     Output('offers', 'children'),
-    Input('datatable', 'rowData')
+    Input('datatable', 'rowData'),
+    prevent_initial_call=True
 )
 def update_metrics(data):
+    if len(data) == 0:
+        return 'N/A', 'N/A', 'N/A', 'N/A'
     dff = pd.DataFrame(data)
     applications_created = len(dff)
     rejection_count = dff['rejection'].sum().astype(str)
@@ -344,7 +354,7 @@ def update_metrics(data):
     Output("table-modal", "is_open"),
     Output("table-modal-body", "children"),
     Output("table-modal-header", "header"),
-    Input("datatable", "rowData"),
+    Input("datatable", "virtualRowData"),
     Input("datatable", "cellClicked"),
     Input("close", "n_clicks"),
     prevent_initial_call=True
@@ -364,9 +374,12 @@ def display_modal(data, selected_cell, n_clicks):
 
 @app.callback(
     Output('wordcloud', 'src'),
-    Input('datatable', 'rowData')
+    Input('datatable', 'virtualRowData'),
+    prevent_initial_call=True
 )
 def update_wordcloud(data):
+    if len(data) == 0:
+        return 'na'
     dff = pd.DataFrame(data)
     # Preprocess the text data
     dff['tokenized'] = dff['requirements'].map(preprocess_text)
