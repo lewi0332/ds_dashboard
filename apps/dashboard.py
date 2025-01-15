@@ -271,6 +271,9 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col(
             dcc.Graph(id='pay-histogram')),
+        dbc.Col(
+            dcc.Graph(id='box-plots')
+            ),
     ]),
     dbc.Row([
         dbc.Col(
@@ -280,9 +283,9 @@ layout = dbc.Container([
         # Center this column
         dbc.Col(
             html.Img(id='wordcloud'),
-        
-        ),
-    ]),
+            width="auto"
+            ),
+    ], justify="center"),
     dbc.Row(
         dbc.Col(
                 dcc.Markdown(id='codeblock',
@@ -319,17 +322,19 @@ def load_initial_data(data, n_clicks):
     Output('commit-map', 'figure'),
     Output('pay-histogram', 'figure'),
     Output('sankey', 'figure'),
+    Output('box-plots', 'figure'),
     Input('datatable', 'virtualRowData'),
     prevent_initial_call=True
 )
 def update_visuals(data):
     if len(data) == 0:
-        return go.Figure(), go.Figure(), go.Figure()
+        return go.Figure(), go.Figure(), go.Figure(), go.Figure()
     dff = pd.DataFrame(data)
     commit_map = display_year(dff)
     pay_hist = pay_histogram(dff)
     sankey = build_sankey(dff)
-    return commit_map, pay_hist, sankey
+    box_plots = build_box_plots(dff)
+    return commit_map, pay_hist, sankey, box_plots
 
 @app.callback(
     Output('applications-created', 'children'),
@@ -610,7 +615,46 @@ def build_sankey(data):
 
     fig.update_layout(
         title_text="Application Journey (Sankey Diagram)",
-        title_font_size=10,
+        # title_font_size=10,
+        title_font_color='#9e9e9e',
+        )
+    return fig
+
+
+def build_box_plots(data: pd.DataFrame) -> go.Figure:
+    """
+    Build a box plot to show the distribution of pay by office participation
+
+    Args:
+    -----
+    data: pd.DataFrame
+        The data to use to build the box plot - must contain the columns 'pay_min', 'pay_max', and 'office_participation'
+
+    Returns:
+    --------
+    fig: go.Figure
+        The box plot figure
+    """
+    data['pay_mean'] = (data['pay_min'] + data['pay_max'])/2
+
+    data.dropna(subset=['office_participation'], inplace=True)
+    data.dropna(subset=['pay_mean'], inplace=True)
+    data = data[data['pay_mean'] > 0]
+
+    remote = data['pay_mean'][data['office_participation']=='Remote']
+    hybrid = data['pay_mean'][data['office_participation']=='Hybrid']
+    office = data['pay_mean'][data['office_participation']=='On-site']
+
+    fig = go.Figure()
+    fig.add_trace(go.Box(y=remote, name='Remote'))
+    fig.add_trace(go.Box(y=hybrid, name='Hybrid'))
+    fig.add_trace(go.Box(y=office, name='On Site'))
+    fig.update_layout(
+        title='Pay Distribution by Office Participation',
+        xaxis_title='Category',
+        yaxis_title='Mean Salary',
+        boxmode='group',  # Group the box plots together
+        # title_font_size=10,
         title_font_color='#9e9e9e',
         )
     return fig
