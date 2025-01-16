@@ -20,6 +20,7 @@ dependencies = [
     "pandas>=2.2.3",
     "pyarrow>=18.1.0",
     "pydantic>=2.10.5",
+    "scipy>=1.15.1",
     "wordcloud>=1.9.4",
 ]
 

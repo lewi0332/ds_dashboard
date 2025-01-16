@@ -7,6 +7,7 @@ import json
 from datetime import datetime, timedelta, date
 import pandas as pd
 import numpy as np
+from scipy.stats import gaussian_kde
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
@@ -489,22 +490,33 @@ def display_year(dff: pd.DataFrame):
 def pay_histogram(data):
     """
     Create overlaping histograms for pay_min histogram and pay_max histogram
-    #TODO: Test density plot.
     """
-    hist_data = data[['pay_min', 'pay_max']][(data['pay_min'] > 0) & (data['pay_max'] > 0)].astype(float)
+    hist_data = data[['pay_min', 'pay_max', 'company_name']][(data['pay_min'] > 0) & (data['pay_max'] > 0)]
+    hist_data[['pay_min', 'pay_max']] = hist_data[['pay_min', 'pay_max']].astype(float)
 
     hist_data['pay'] = (hist_data['pay_max'] + hist_data['pay_min'])/2
+
+
+    # Calculate the KDE
+    kde = gaussian_kde(hist_data['pay'])
+    x_vals = np.linspace(min(hist_data['pay']), max(hist_data['pay']), 100)
+    y_vals = kde(x_vals)
+
+    # convert y_vals to a the frequency scale of hist_data['pay']
+    y_vals = y_vals*hist_data['pay'].mean()
+
     fig = go.Figure()
     fig.add_trace(
         go.Histogram(
             x=hist_data['pay'],
             name='Pay (mean)',
             opacity=0.85,
-            xbins=dict(size=5000)
+            xbins=dict(size=5000),
         )
     )
-    fig.add_trace(go.Histogram(x=hist_data['pay_min'], name='Pay Range - Min', opacity=0.2, xbins=dict(size=5000)))
-    fig.add_trace(go.Histogram(x=hist_data['pay_max'], name='Pay Range - Max', opacity=0.2, xbins=dict(size=5000)))
+    fig.add_trace(go.Scatter(x=x_vals, y=y_vals, mode='lines', name='KDE', line=dict(width=2)))
+    # fig.add_trace(go.Histogram(x=hist_data['pay_min'], name='Pay Range - Min', opacity=0.2, xbins=dict(size=5000)))
+    # fig.add_trace(go.Histogram(x=hist_data['pay_max'], name='Pay Range - Max', opacity=0.2, xbins=dict(size=5000)))
     # Add vertical line for the mean
     fig.add_vline(
         x=hist_data['pay'].mean(),
@@ -518,7 +530,7 @@ def pay_histogram(data):
         x=hist_data['pay_min'].mean(),
         line_width=2,
         line_dash="dash",
-        line_color='rgba(168, 168, 168, 0.7)',
+        line_color='rgba(168, 168, 168, 0.6)',
         annotation_text=f"Range Min:<br><b>${int(hist_data['pay_min'].mean()):,}</b>",
         annotation_position="bottom right")
     # Add vertical line for the max
@@ -526,8 +538,8 @@ def pay_histogram(data):
         x=hist_data['pay_max'].mean(),
         line_width=2,
         line_dash="dash",
-        line_color="#19d3f3",
-        #line_opacity=0.7,
+        line_color='rgba(25, 211, 243, 0.6)',
+        # line_opacity=0.7,
         annotation_text=f"Range Max:<br><b>${int(hist_data['pay_max'].mean()):,}</b>",
         annotation_position="bottom right")
     fig.update_layout(
