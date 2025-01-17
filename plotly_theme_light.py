@@ -148,7 +148,7 @@ plotly_light = go.layout.Template(layout=go.Layout({
         'title': {
             'font': {
                 #                       'size': 18,
-                'family': 'Plain'
+                'family': 'plain, arial'
             }
         },
         'zerolinecolor': '#DFE8F3',

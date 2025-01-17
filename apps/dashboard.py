@@ -665,8 +665,7 @@ def build_box_plots(data: pd.DataFrame) -> go.Figure:
         title='Pay Distribution by Office Participation',
         xaxis_title='Category',
         yaxis_title='Mean Salary',
-        boxmode='group',  # Group the box plots together
-        # title_font_size=10,
-        title_font_color='#9e9e9e',
+        boxmode='group',
+        font={'size':10, 'color':'#9e9e9e'}
         )
     return fig
