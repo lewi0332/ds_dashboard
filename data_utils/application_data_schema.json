@@ -256,7 +256,7 @@
   {
     "mode": "NULLABLE",
     "name": "technical_screen_type",
-    "type": "INT64",
+    "type": "STRING",
     "description": "interview|test|task how the technical screen is conducted"
   },
   {
