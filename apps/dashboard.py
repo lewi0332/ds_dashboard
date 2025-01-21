@@ -617,9 +617,9 @@ def build_sankey(data):
                 hiring_to_tech,
                 hiring_to_rejection,
                 hiring_to_no_response,
-                tech_to_offer,
+                tech_to_no_response,
                 tech_to_rejection,
-                tech_to_no_response
+                tech_to_offer,
                 ],
             hovertemplate='%{source.label} -> %{target.label}: %{value:0}<extra></extra>',
             )
