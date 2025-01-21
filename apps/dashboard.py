@@ -351,7 +351,8 @@ def update_metrics(data):
     dff = pd.DataFrame(data)
     applications_created = len(dff)
     rejection_count = dff['rejection'].sum().astype(str)
-    responses = dff['recruiter_screen'].sum().astype(str)
+    straight_rejections = dff[dff['recruiter_screen']==0]['rejection'].sum()
+    responses = str(dff['recruiter_screen'].sum() + straight_rejections)
     offers = dff['offer'].sum().astype(str)
     return applications_created, rejection_count, responses, offers
 
@@ -557,11 +558,11 @@ def build_sankey(data):
     """
     Create a sankey diagram to show the application journey
     """
-    cold_apps = data[(data['refferal']==0)&(data['recruiter_screen']==0)&(data['rejection']==0)]['application_id'].count()
-    ca_to_screen = data[(data['refferal']==0) & (data['recruiter_screen']==1)]['application_id'].count()
-    ca_to_rejection = data[(data['refferal']==0) & (data['rejection']==1)]['application_id'].count()
+    cold_apps = data[(data['refferal']==0) & (data['recruiter']==0) & (data['recruiter_screen']==0)&(data['rejection']==0)]['application_id'].count()
+    ca_to_screen = data[(data['refferal']==0) & (data['recruiter']==0) & (data['recruiter_screen']==1)]['application_id'].count()
+    ca_to_rejection = data[(data['refferal']==0) & (data['recruiter']==0) & (data['rejection']==1)]['application_id'].count()
 
-    ref_apps = data[(data['refferal']==1)&(data['recruiter_screen']==0)&(data['rejection']==0)]['application_id'].count()
+    ref_apps = data[(data['refferal']==1)  & (data['recruiter_screen']==0)&(data['rejection']==0)]['application_id'].count()
     ref_to_screen = data[(data['refferal']==1) & (data['recruiter_screen']==1)]['application_id'].count()
     ref_to_rejection = data[(data['refferal']==1) & (data['rejection']==1)]['application_id'].count()
     
@@ -588,15 +589,15 @@ def build_sankey(data):
             thickness = 20,
             line = dict(color = "black", width = 0.5),
             label = [
-                'Cold Application',
-                'Network Refferal',
-                'Recruiter Initiated',
-                'Recruiter Screen',
-                'Hiring Manager Screen',
-                'Technical Screen',
-                'No Response',
-                'Rejection',
-                'Offer'],
+                'Cold Application', # 0
+                'Network Refferal', # 1
+                'Recruiter Initiated', # 2
+                'Recruiter Screen', # 3
+                'Hiring Manager Screen', # 4
+                'Technical Screen', # 5
+                'No Response', # 6
+                'Rejection', # 7
+                'Offer'], # 8
             ),
         link = dict(
             source = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5],
@@ -612,11 +613,11 @@ def build_sankey(data):
                 rec_apps,
                 rec_to_rejection,
                 screen_to_hiring_man,
-                screen_to_rejection,
                 screen_to_no_response,
+                screen_to_rejection,
                 hiring_to_tech,
-                hiring_to_rejection,
                 hiring_to_no_response,
+                hiring_to_rejection,
                 tech_to_no_response,
                 tech_to_rejection,
                 tech_to_offer,
