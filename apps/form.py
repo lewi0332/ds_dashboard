@@ -6,6 +6,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import dcc, html, Input, Output, State, ctx
 from google.cloud import bigquery
+from pydantic import ValidationError
 from main import app
 from data_utils.datamodel import Application, application_form_fields
 from apps.utils import (
@@ -62,39 +63,55 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             dbc.Form([
-                dbc.Label("Application ID"),
+                dbc.Label("Application ID", className="mt-3"),
                 dbc.Input(type="text", id="application-id", placeholder="Enter Application ID"),
-                dbc.Label("Date"),
+                dbc.Label("Application Link", className="mt-3"),
+                dbc.Input(type="text", id="application-link", placeholder="Enter Application Link"),
+                dbc.Label("Job Title", className="mt-3"),
+                dbc.Input(type="text", id="job-title-input", placeholder="Enter Job title"),
+                dbc.Label("Pay Min", className="mt-3"),
+                dbc.Input(type="number", id="pay-min-input", placeholder="Enter Minimum Salary of the Role"),
+                dbc.Label("CV version", className="mt-3"),
+                dbc.Input(type="text", id="cv-version-input", placeholder="Enter the name of the CV"),
+                dbc.Label("Office Participation", className="mt-3"),
+                dcc.Dropdown(['Hybrid', 'Remote', 'On-site'], 'Hybrid', id='office-participation-dropdown'),
+            ])
+        ], width=6),
+        dbc.Col([
+            dbc.Form([
+                dbc.Label("Date", className="mt-3"),
                 dcc.DatePickerSingle(id='application-date',
                     min_date_allowed=date(2024, 12, 1),
                     max_date_allowed=date(2026, 1, 1),
                     initial_visible_month=date.today(),
                     date=date.today()
                 ),
-                dbc.Label("Application Link"),
-                dbc.Input(type="text", id="application-link", placeholder="Enter Application Link"),
-                dbc.Label("Company"),
+                dbc.Label("Company", className="mt-3"),
                 dbc.Input(type="text", id="company-input", placeholder="Enter Company name"),
-                dbc.Label("Job Title"),
-                dbc.Input(type="text", id="job-title-input", placeholder="Enter Job title"),
-                dbc.Label("Location"),
+                dbc.Label("Location", className="mt-3"),
                 dbc.Input(type="text", id="location-input", placeholder="Enter Company Location"),
-                dbc.Label("Office Participation"),
-                dcc.Dropdown(['Hybrid', 'Remote', 'On-site'], 'Hybrid', id='office-participation-dropdown'),
-                dbc.Label("Role Description"),
-                dbc.Textarea(id="role-desc-input", placeholder="Enter description of role", style={'width': '100%', 'height': 300}),
-                dbc.Label("Responsibilities"),
-                dbc.Textarea(id="responsibilities-input", placeholder="Enter responsibilities of the Role", style={'width': '100%', 'height': 300}),
-                dbc.Label("Requirements"),
-                dbc.Textarea( id="requirements-input", placeholder="Enter Requirements of the Role", style={'width': '100%', 'height': 300}),
-                dbc.Label("Pay Min"),
-                dbc.Input(type="number", id="pay-min-input", placeholder="Enter Minimum Salary of the Role"),
-                dbc.Label("Pay Max"),
+                dbc.Label("Pay Max", className="mt-3"),
                 dbc.Input(type="number", id="pay-max-input", placeholder="Enter Maximum Salary of the Role"),
-                dbc.Label("CV version"),
-                dbc.Input(type="text", id="cv-version-input", placeholder="Enter the name of the CV"),
-                dbc.Label("Cover Letter version"),
+                dbc.Label("Cover Letter version", className="mt-3"),
                 dbc.Input(type="text", id="cover-letter-input", placeholder="Enter the name of the cover letter"),
+            ])
+        ], width=6),
+    ]),
+
+    dbc.Row([
+        dbc.Col([
+            dbc.Form([
+
+                dbc.Label("Role Description", className="mt-3"),
+                dbc.Textarea(id="role-desc-input", placeholder="Enter description of role", style={'width': '100%', 'height': 300}),
+                dbc.Label("Responsibilities", className="mt-3"),
+                dbc.Textarea(id="responsibilities-input", placeholder="Enter responsibilities of the Role", style={'width': '100%', 'height': 300}),
+                dbc.Label("Requirements", className="mt-3"),
+                dbc.Textarea( id="requirements-input", placeholder="Enter Requirements of the Role", style={'width': '100%', 'height': 300}),
+
+
+
+
             ])
         ], width=10),
     ]),
@@ -102,14 +119,14 @@ layout = dbc.Container([
     html.H3("Skill Assessment"),
     dbc.Row([
         dbc.Col([
-            dbc.Label("Self Assessment"),
-            dbc.Label("How confident do I feel about my capabilities in this role? (0 - 100)", style={'font-size': '1rem'}),
+            dbc.Label("Self Assessment", className="mt-3"),
+            dbc.Label("How confident do I feel about my capabilities in this role? (0 - 100)", style={'font-size': '1rem'}, className="mt-3"),
             dcc.Slider(0, 100, 5,
                value=50,
                id='self-assessment-slider'),
         ]),
         dbc.Col([
-            dbc.Label("Core Skills"),
+            dbc.Label("Core Skills", className="mt-3"),
             dcc.Dropdown(read_options_from_gcs(BUCKET_NAME, "core_skills_list.json"),
                 ['python', 'pandas', 'sql'],
                 multi=True,
@@ -119,51 +136,51 @@ layout = dbc.Container([
         ]),
     dbc.Row([
         dbc.Col([
-            dbc.Label("LLM Focus"),
+            dbc.Label("LLM Focus", className="mt-3"),
             daq.BooleanSwitch(id='llm-switch', on=False, style={'float': 'left'})
         ]),
         dbc.Col([
-            dbc.Label("MMM Focus"),
+            dbc.Label("MMM Focus", className="mt-3"),
             daq.BooleanSwitch(id='mmm-switch', on=False, style={'float': 'left'}),
         ]),
     ]),
     dbc.Row([    
         dbc.Col([
-            dbc.Label("Marketing Focus"),
+            dbc.Label("Marketing Focus", className="mt-3"),
             daq.BooleanSwitch(id='marketing-switch', on=False, style={'float': 'left'}),
         ]),
         dbc.Col([
-            dbc.Label("Retail Focus"),
+            dbc.Label("Retail Focus", className="mt-3"),
             daq.BooleanSwitch(id='retail-switch', on=False, style={'float': 'left'}),
         ]),
     ]),
         dbc.Row([    
         dbc.Col([
-            dbc.Label("Healthcare Focus"),
+            dbc.Label("Healthcare Focus", className="mt-3"),
             daq.BooleanSwitch(id='healthcare-switch', on=False, style={'float': 'left'}),
         ]),
         dbc.Col([
-            dbc.Label("Finance Focus"),
+            dbc.Label("Finance Focus", className="mt-3"),
             daq.BooleanSwitch(id='finance-switch', on=False, style={'float': 'left'}),
         ]),
     ]),
     dbc.Row([    
         dbc.Col([
-            dbc.Label("Senior Role"),
+            dbc.Label("Senior Role", className="mt-3"),
             daq.BooleanSwitch(id='senior-role-switch', on=False, style={'float': 'left'}),
         ]),
         dbc.Col([
-            dbc.Label("Staff Role"),
+            dbc.Label("Staff Role", className="mt-3"),
             daq.BooleanSwitch(id='staff-role-switch', on=False, style={'float': 'left'}),
         ]),
     ]),
     dbc.Row([    
         dbc.Col([
-            dbc.Label("Generalist Role"),
+            dbc.Label("Generalist Role", className="mt-3"),
             daq.BooleanSwitch(id='generalist-switch', on=False, style={'float': 'left'}),
         ]),
         dbc.Col([
-            dbc.Label("Management Role"),
+            dbc.Label("Management Role", className="mt-3"),
             daq.BooleanSwitch(id='management-switch', on=False, style={'float': 'left'}),
         ]),
     ]),
@@ -172,34 +189,33 @@ layout = dbc.Container([
     html.H3("Source of Application"),
     dbc.Row([    
         dbc.Col([
-            dbc.Label("Personal Refferal"),
+            dbc.Label("Personal Refferal", className="mt-3"),
             daq.BooleanSwitch(id='refferal-switch', on=False, style={'float': 'left'}),
-        ]),
-        dbc.Col([
-            dbc.Label("Recruiter Initiated"),
-            daq.BooleanSwitch(id='recruiter-switch', on=False, style={'float': 'left'}),
-        ]),
-    ]),
-    dbc.Row([
-        dbc.Col([
-            dbc.Label("Application Source"),
+            dbc.Label("Application Source", className="mt-3"),
             dcc.Dropdown(read_options_from_gcs(BUCKET_NAME, "application_source_list.json"),
                 # options= ['Indeed', 'Glassdoor', 'Monster', 'LinkedIn', 'BuiltIn', 'Company Website'],
                 value= 'LinkedIn',
                 id='app-source-dropdown',
             ),
             dbc.Input(type="text", id="new-app-source-input", placeholder="Enter new source", size="sm", debounce=True),
+            html.Br(),
+        ]),
+        dbc.Col([
+            dbc.Label("Recruiter Initiated", className="mt-3"),
+            daq.BooleanSwitch(id='recruiter-switch', on=False, style={'float': 'left'}),
         ]),
     ]),
+    html.Br(),
+    html.Br(),
     html.Hr(),
     html.H3("Application Progress"),
     dbc.Row([
         dbc.Col([
-                dbc.Label("Response - Recruiter Screen"),
+                dbc.Label("Response - Recruiter Screen", className="mt-3"),
                 daq.BooleanSwitch(id='recruiter-screen-switch', on=False, style={'float': 'left'}),
         ]),
         dbc.Col([
-                dbc.Label("Response - Recruiter Screen - Date"),
+                dbc.Label("Response - Recruiter Screen - Date", className="mt-3"),
                 dcc.DatePickerSingle(id='recruiter-screen-date',
                     min_date_allowed=date(2024, 12, 1),
                     max_date_allowed=date(2026, 1, 1),
@@ -210,11 +226,11 @@ layout = dbc.Container([
     ]),
     dbc.Row([
         dbc.Col([
-                dbc.Label("Response - Hiring Manager Screen"),
+                dbc.Label("Response - Hiring Manager Screen", className="mt-3"),
                 daq.BooleanSwitch(id='hiring-manager-screen-switch', on=False, style={'float': 'left'}),
         ]),
         dbc.Col([
-                dbc.Label("Response - Hiring Manager Screen - Date"),
+                dbc.Label("Response - Hiring Manager Screen - Date", className="mt-3"),
                 dcc.DatePickerSingle(id='hiring-manager-screen-date',
                     min_date_allowed=date(2024, 12, 1),
                     max_date_allowed=date(2026, 1, 1),
@@ -225,37 +241,39 @@ layout = dbc.Container([
     ]),
     dbc.Row([
         dbc.Col([
-                dbc.Label("Response - Technical Screen / Test / Assignment"),
+                dbc.Label("Response - Technical Screen / Test / Assignment", className="mt-3"),
                 daq.BooleanSwitch(id='technical-screen-switch', on=False, style={'float': 'left'}),
         ]),
         dbc.Col([
-                dbc.Label("Response - Technical Screen - Date"),
+                dbc.Label("Response - Technical Screen - Date", className="mt-3"),
                 dcc.DatePickerSingle(id='technical-screen-date',
                     min_date_allowed=date(2024, 12, 1),
                     max_date_allowed=date(2026, 1, 1),
                     initial_visible_month=date.today(),
                     date=None
                 ),
-        ]),
-    ]),
-    dbc.Row([
-        dbc.Col([
-                dbc.Label("Technical Screen Type"),
+                dbc.Label("Technical Screen Type", className="mt-3"),
                 dcc.Dropdown(['Interview', 'Test', 'Task'], id='technical-screen-type'),
-        ]),
-        dbc.Col([
-                dbc.Label("Time Spent - Technical Screen"),
+                dbc.Label("Time Spent - Technical Screen", className="mt-3"),
                 dbc.Input(type="number", id="technical-screen-time", placeholder="Enter time spent on the technical screen in minutes"),
         ]),
     ]),
     dbc.Row([
         dbc.Col([
-                dbc.Label("Offer"),
+                
+        ]),
+        dbc.Col([
+                
+        ]),
+    ]),
+    dbc.Row([
+        dbc.Col([
+                dbc.Label("Offer", className="mt-3"),
                 #Set the style of this switch to position on the left of the column
                 daq.BooleanSwitch(id='offer-switch', on=False, style={'float': 'left'}),
         ]),
         dbc.Col([
-                dbc.Label("Offer - Date"),
+                dbc.Label("Offer - Date", className="mt-3"),
                 dcc.DatePickerSingle(id='offer-date',
                     min_date_allowed=date(2024, 12, 1),
                     max_date_allowed=date(2026, 1, 1),
@@ -282,10 +300,10 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col([
                 dbc.Button("Submit", id="submit-button", class_name='view-page-button-style',),
-        ]),
+        ], width=2),
         dbc.Col([
                 dbc.Button("Delete", id="delete-button", class_name='view-page-button-style',),
-        ]),
+        ], width=2),
         dbc.Col([
             dcc.Loading(id='loading_icon',
                     children=[
@@ -357,65 +375,24 @@ def update_bigquery(submit_n_clicks,
                     is_open,
                     *args):
     
-    # Extract the dynamically passed arguments
-    raw_data = args[:len(application_form_fields)]
-
     button_id = dash.callback_context
     button_id = button_id.triggered[0]['prop_id'].split('.')[0]
 
     if button_id == 'submit-button':
         if username and password and is_authenticated(username, password):
             # Extract the values from the form and create an Application object
-            app = Application(
-                application_id = raw_data[0],
-                application_date = raw_data[1],
-                application_link = raw_data[2],
-                company_name = raw_data[3],
-                job_title = raw_data[4],
-                location = raw_data[5],
-                office_participation = raw_data[6],
-                role_desc = raw_data[7],
-                responsibilities = raw_data[8],
-                requirements = raw_data[9],
-                pay_min = raw_data[10],
-                pay_max = raw_data[11],
-                cv_version = raw_data[12],
-                cover_letter = raw_data[13],
-                self_assessment = raw_data[14],
-                core_skills = raw_data[15],
-                llm = raw_data[16],
-                mmm = raw_data[17],
-                marketing = raw_data[18],
-                retail = raw_data[19],
-                healthcare = raw_data[20],
-                finance = raw_data[21],
-                senior_role = raw_data[22],
-                staff_role = raw_data[23],
-                generalist_role = raw_data[24],
-                management_role = raw_data[25],
-                refferal = raw_data[26],
-                recruiter = raw_data[27],
-                application_source = raw_data[28],
-                recruiter_screen = raw_data[29],
-                recruiter_screen_date = raw_data[30],
-                hiring_manager_screen = raw_data[31],
-                hiring_manager_screen_date = raw_data[32],
-                technical_screen = raw_data[33],
-                technical_screen_date = raw_data[34],
-                technical_screen_type = raw_data[35],
-                technical_screen_time = raw_data[36],
-                offer = raw_data[37],
-                offer_date = raw_data[38],
-                rejection = raw_data[39],
-                rejection_date = raw_data[40]
-            )
+            args = {application_form_fields[i][2]: args[i] for i in range(len(application_form_fields))}
+            try:
+                form_app = Application(**args)
+            except ValidationError as pydantic_err:
+                return pydantic_err, False, None
             
-            job = upsert_data_to_bigQuery_table(app)
+            job = upsert_data_to_bigQuery_table(form_app)
             job.result()
             errors = job.errors
 
             if errors == [] or errors is None:
-                return f"Application {app.application_id} submitted successfully.", False, 1
+                return f"Application {form_app.application_id} submitted successfully.", False, 1
             else:
                 return f"Encountered errors while inserting rows in Bigquery: {errors}", False, None
         else:
