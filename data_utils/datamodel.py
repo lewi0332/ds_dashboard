@@ -1,10 +1,17 @@
-from typing import List, Optional
+from typing import List, Optional, Any
+from typing_extensions import Annotated
 from datetime import datetime, date
-from pydantic import BaseModel
+from pydantic import BaseModel, BeforeValidator
 
+
+def ensure_id(value: Any)-> str:
+    if value is int:
+        return str(value)
+    else:
+        return value
 
 class Application(BaseModel):
-    application_id: str
+    application_id: Annotated[str, BeforeValidator(ensure_id)]
     application_date: date = date.today()
     application_link: Optional[str] = None
     company_name: str
