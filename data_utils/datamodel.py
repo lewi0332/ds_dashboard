@@ -5,7 +5,7 @@ from pydantic import BaseModel, BeforeValidator
 
 
 def ensure_id(value: Any)-> str:
-    if value is int:
+    if isinstance(value, int):
         return str(value)
     else:
         return value
