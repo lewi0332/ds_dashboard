@@ -176,3 +176,4 @@ data/data.parquet
 data/schema.sql
 data_utils/data.parquet
 data_utils/schema.sql
+usage.py

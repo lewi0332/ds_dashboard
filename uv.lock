@@ -294,6 +294,45 @@ wheels = [
 ]
 
 [[package]]
+name = "dash-iconify"
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/49/d2/03483ed3278cd476c34064bec43675fb6da84a6908e995a699eed76ab32d/dash_iconify-0.1.2.tar.gz", hash = "sha256:564774be6b11b0ac3a8999b7137c3d17a1d351d69b673aa313c7228eacc9d143", size = 17347 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/63/f10cc18533cc9ab899ea81deca9759b3eebe47d01ad95c4e67b6acdada97/dash_iconify-0.1.2-py3-none-any.whl", hash = "sha256:9ab0eda19bb4514e177bf1f8f36947bb9e5b44aba6ce947f22a1cf0f1a45fc14", size = 18928 },
+]
+
+[[package]]
+name = "dash-mantine-components"
+version = "0.15.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dash" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/83/0f687d8e96c020875a0bbf69757675b3b02c0087b813b3a1298cc54eb8e2/dash_mantine_components-0.15.1.tar.gz", hash = "sha256:bb24153af09ccc42972af397101ee62718ebe2bbf29fa7ed33c02997059352bd", size = 916594 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6e/b5/984de836c4a5e24c29e18b00f51fcdb44f77025221ecd0d7da28ff34532f/dash_mantine_components-0.15.1-py3-none-any.whl", hash = "sha256:974792e1973144b56d286a50ca55bdfc5d601c174dd7cc4641a1d4bcd81e339e", size = 1224192 },
+]
+
+[[package]]
+name = "dash-pydantic-form"
+version = "0.13.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dash" },
+    { name = "dash-ag-grid" },
+    { name = "dash-iconify" },
+    { name = "dash-mantine-components" },
+    { name = "fsspec" },
+    { name = "pandas" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/9b/364f95b337baeca8899cd210b5a9f7261dc6509f908c213deabaf8c378f8/dash_pydantic_form-0.13.3.tar.gz", hash = "sha256:0fc3e0c2c997232b69ee115c78e60dd676ee46ae6d05310e0c6f572d164d0a53", size = 72609 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/82/4e/6b0939b416c42c9bccc600376d9d38d2ac25bfa04551ac8765e8051c56c1/dash_pydantic_form-0.13.3-py3-none-any.whl", hash = "sha256:b215d61363f637026731e1df0a9a8a6028730b7649b571cc49b9758f060375a2", size = 75096 },
+]
+
+[[package]]
 name = "dash-table"
 version = "5.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -369,6 +408,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "dash-pydantic-form" },
     { name = "ipykernel" },
     { name = "nbformat" },
     { name = "pandas-gbq" },
@@ -397,6 +437,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "dash-pydantic-form", specifier = ">=0.13.3" },
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "nbformat", specifier = ">=5.10.4" },
     { name = "pandas-gbq", specifier = ">=0.26.1" },
@@ -459,6 +500,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/fc/a8/4bf98840ff89fcc188470b59daec57322178bf36d2f4f756cd19a42a826b/fonttools-4.55.3-cp313-cp313-win32.whl", hash = "sha256:8c5ec45428edaa7022f1c949a632a6f298edc7b481312fc7dc258921e9399628", size = 2160178 },
     { url = "https://files.pythonhosted.org/packages/e6/57/4cc35004605416df3225ff362f3455cf09765db00df578ae9e46d0fefd23/fonttools-4.55.3-cp313-cp313-win_amd64.whl", hash = "sha256:11e5de1ee0d95af4ae23c1a138b184b7f06e0b6abacabf1d0db41c90b03d834b", size = 2206102 },
     { url = "https://files.pythonhosted.org/packages/99/3b/406d17b1f63e04a82aa621936e6e1c53a8c05458abd66300ac85ea7f9ae9/fonttools-4.55.3-py3-none-any.whl", hash = "sha256:f412604ccbeee81b091b420272841e5ec5ef68967a9790e80bffd0e30b8e2977", size = 1111638 },
+]
+
+[[package]]
+name = "fsspec"
+version = "2024.12.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ee/11/de70dee31455c546fbc88301971ec03c328f3d1138cfba14263f651e9551/fsspec-2024.12.0.tar.gz", hash = "sha256:670700c977ed2fb51e0d9f9253177ed20cbde4a3e5c0283cc5385b5870c8533f", size = 291600 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/86/5486b0188d08aa643e127774a99bac51ffa6cf343e3deb0583956dca5b22/fsspec-2024.12.0-py3-none-any.whl", hash = "sha256:b520aed47ad9804237ff878b504267a3b0b441e97508bd6d2d8774e3db85cee2", size = 183862 },
 ]
 
 [[package]]
