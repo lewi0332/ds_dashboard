@@ -11,14 +11,13 @@ from scipy.stats import gaussian_kde
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
-import dash_bootstrap_components as dbc
-from dash import dcc, html
+import dash_mantine_components as dmc
+from dash import dcc, html, register_page, callback
 from dash.dependencies import Input, Output
 import dash_ag_grid as dag
 from google.cloud import bigquery
 from apps.tables import JOBcolumnDefs, defaultColDef, column_size_options, get_row_style
 from plotly_theme_light import plotly_light
-from main import app
 
 # from gensim.utils import simple_preprocess
 # from gensim.parsing.preprocessing import STOPWORDS
@@ -31,6 +30,9 @@ import base64
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+
+
+register_page(__name__)
 
 # Download the stopwords and punkt tokenizer if not already downloaded
 nltk.download('stopwords', quiet=True)
@@ -105,201 +107,194 @@ def make_word_cloud_image(dff):
 # Create app layout
 # ---------------------------------------------------------------------
 
-layout = dbc.Container([
-    dcc.Store(id='initial-data', data=load_data()),
-    dbc.Row([
-        dbc.Col(
-            [
-                dcc.Markdown(id='intro',
-                children = """
-                ---
-                # Job Application Tracking
-                ---
-                """,
-                className='md')
-            ])
-    ]),
-    dbc.Row([
-        dbc.Col(
-            dcc.Markdown(
-                children = """
-                """,
-                className='md'),
-        width=5)
-    ]),
-# ---------------------------------------------------------------------
-    dbc.Row([
-        dbc.Col(html.H2('Total Applications Created',
-                        style={
-                            'color': 'grey',
-                            'text-align': 'center',
-                            'font-size': 24,
-                        }),
-                width=5),
-        dbc.Col(html.H2('Total Rejections',
-                        style={
-                            'color': 'grey',
-                            'font-size': 24,
-                            'textAlign': 'center'
-                        }),
-                align="center",
-                width=5)
-    ],
-            justify='center',
-            align='center',
-            style={'padding-top': 0}),
-    dbc.Row([
-        dbc.Col(html.H1(id='applications-created',
-                        style={
-                            'font-size': 36,
-                            'padding': 0,
-                            'textAlign': 'center',
-                            'margin-bottom': 0
-                        }),
-                align="center",
-                width=5),
-        dbc.Col(html.H1(id='rejection-count',
-                        style={
-                            'font-size': 36,
-                            'padding': 0,
-                            'textAlign': 'center',
-                            'margin-bottom': 0
-                        }),
-                align="center",
-                width=5)
-    ],
-            justify='center'),
-    html.Br(),
-    dbc.Row([
-        dbc.Col(html.H2('Total Responses',
-                        style={
-                            'color': 'grey',
-                            'text-align': 'center',
-                            'font-size': 24,
-                        }),
-                width=5),
-        dbc.Col(html.H2('Total Offers',
-                        style={
-                            'color': 'grey',
-                            'font-size': 24,
-                            'textAlign': 'center'
-                        }),
-                align="center",
-                width=5)
-    ],
-            justify='center',
-            align='center',
-            style={'padding-top': 0}),
-    dbc.Row([
-        dbc.Col(html.H1('N/A',
-                        id='responses',
-                        style={
-                            'font-size': 36,
-                            'padding': 0,
-                            'textAlign': 'center',
-                            'margin-bottom': 0
-                        }),
-                align="center",
-                width=5),
-        dbc.Col(html.H1('N/A',
-                        id='offers',
-                        style={
-                            'font-size': 36,
-                            'padding': 0,
-                            'textAlign': 'center',
-                            'margin-bottom': 0
-                        }),
-                align="center",
-                width=5)
-    ],
-            justify='center'),
-# ---------------------------------------------------------------------
-    # Add modal for job details
-    dbc.Modal(
-        [
-            dbc.ModalHeader(id="table-modal-header"),
-            dbc.ModalBody(id="table-modal-body"),
-            dbc.ModalFooter(
-                dbc.Button("Close", id="close", className="ml-auto")
-            ),
-        ],
-        id="table-modal",
-        size="lg",
-    ),
-    dbc.Row([
-        dbc.Col(
-            [
-            html.Br(),
-            dag.AgGrid(
-                id="datatable",
-                className="ag-theme-material compact",
-                # dynamically set columns
-                columnDefs=JOBcolumnDefs,
-                columnSize="autoSize",
-                columnSizeOptions=column_size_options,
-                defaultColDef=defaultColDef,
-                dashGridOptions={"undoRedoCellEditing": True, 
-                "cellSelection": "single",
-                "rowSelection": "single"},
-                getRowStyle=get_row_style,
-                csvExportParams={"fileName": "job_applications.csv", "columnSeparator": ","},
-                style = {'height': '500px', 'width': '100%', 'color': 'grey'}
-                ),
-            dbc.Button(
-                'Reload', id='reloadTop', n_clicks=0,
-                className='download-button-style'
+layout = dmc.Container(
+    children = [
+        dcc.Store(id='initial-data', data=load_data()),
+        dcc.Markdown(id='intro',
+            children = """
+            ---
+            # Job Application Tracking
+            ---
+            """,
+            className='card-text'
+        ),
+    # ---------------------------------------------------------------------
+        dmc.Grid(
+            children = [
+                dmc.GridCol(
+                    html.H2('Total Applications Created',
+                            style={'color': 'grey',
+                                'text-align': 'center',
+                                'font-size': 24
+                                }
                     ),
-            ]
+                    span=6
+                ),
+                dmc.GridCol(
+                    html.H2('Total Rejections',
+                            style={
+                                'color': 'grey',
+                                'font-size': 24,
+                                'textAlign': 'center'
+                                }
+                    ),
+                    span=6
+                )
+            ],
         ),
-    ]),
-    html.Br(),
-    dbc.Row([
-        dbc.Col(
-            dcc.Markdown(id='intro',
-                children = """
-                ---
-                ### Visualizations
-                """,
-                className='md')
+        dmc.Grid(
+            children = [
+                dmc.GridCol(
+                    html.H1(id='applications-created',
+                            style={
+                                'font-size': 36,
+                                'padding': 0,
+                                'textAlign': 'center',
+                                'margin-bottom': 0
+                            }
+                    ),
+                    span=6
+                ),
+                dmc.GridCol(
+                    html.H1(id='rejection-count',
+                            style={
+                                'font-size': 36,
+                                'padding': 0,
+                                'textAlign': 'center',
+                                'margin-bottom': 0
+                            }
+                    ),
+                    span=6
+                )
+            ],
+            justify='center'
         ),
-    ]),
-    dbc.Row([
-        dbc.Col(
-            dcc.Graph(id='commit-map')),
-        # dbc.Col(
-        #     dcc.Graph(id='scatter'), width=6)
-    ]),
-    dbc.Row([
-        dbc.Col(
-            dcc.Graph(id='pay-histogram')),
-        dbc.Col(
-            dcc.Graph(id='box-plots')
+        html.Br(),
+        dmc.Grid(
+            children = [
+                dmc.GridCol(
+                    html.H2('Total Responses',
+                            style={
+                                'color': 'grey',
+                                'text-align': 'center',
+                                'font-size': 24,
+                            }
+                    ),
+                    span=6
+                ),
+                dmc.GridCol(
+                    html.H2('Total Offers',
+                            style={
+                                'color': 'grey',
+                                'font-size': 24,
+                                'textAlign': 'center'
+                            }
+                    ),
+                    span=6
+                )
+            ],
+            justify='center',
+            align='center',
+            style={'padding-top': 0}
+        ),
+        dmc.Grid(
+            children = [
+                dmc.GridCol(
+                    html.H1('N/A',
+                            id='responses',
+                            style={
+                                'font-size': 36,
+                                'padding': 0,
+                                'textAlign': 'center',
+                                'margin-bottom': 0
+                            }
+                    ),
+                    span=6
+                ),
+                dmc.GridCol(
+                    html.H1('N/A',
+                            id='offers',
+                            style={
+                                'font-size': 36,
+                                'padding': 0,
+                                'textAlign': 'center',
+                                'margin-bottom': 0
+                            }
+                    ),
+                    span=6
+                )
+            ],
+            justify='center'),
+    # ---------------------------------------------------------------------
+        # Add modal for job details
+        dmc.Modal(
+            id="table-modal",
+            size="55%",
+            centered=True,
+            children=[
+                dcc.Markdown(id='modal-body'),
+                dmc.Button("Close", id="close", className="ml-auto")
+            ],
+        ),
+        dag.AgGrid(
+            id="datatable",
+            className="ag-theme-material compact",
+            # dynamically set columns
+            columnDefs=JOBcolumnDefs,
+            columnSize="autoSize",
+            columnSizeOptions=column_size_options,
+            defaultColDef=defaultColDef,
+            dashGridOptions={"undoRedoCellEditing": True, 
+            "cellSelection": "single",
+            "rowSelection": "single"},
+            getRowStyle=get_row_style,
+            csvExportParams={"fileName": "job_applications.csv", "columnSeparator": ","},
+            style = {'height': '500px', 'width': '100%', 'color': 'grey'}
             ),
-    ]),
-    dbc.Row([
-        dbc.Col(
-            dcc.Graph(id='sankey')),
-    ]),
-    dbc.Row([
-        # Center this column
-        dbc.Col(
-            html.Img(id='wordcloud'),
-            width="auto"
-            ),
-    ], justify="center"),
-    dbc.Row(
-        dbc.Col(
-                dcc.Markdown(id='codeblock',
-                children = """
-                ```
-                ```
-                """,
-                
-                className='md')
-            ),
-        style={"maxHeight": "400px", "overflow": "scroll"}
-    ),
-    html.Br(),
+        html.Br(),
+        dmc.Button('Reload', id='reloadTop', n_clicks=0),
+        html.Br(),
+        html.Hr(),
+        dcc.Markdown(id='intro',
+                    children = """
+                    ---
+                    ### Visualizations
+                    """,
+                    className='md'),
+        dcc.Graph(id='commit-map'),
+        dmc.Grid(
+            children = [
+                dmc.GridCol(
+                    dcc.Graph(id='pay-histogram'),
+                    span=6
+                ),
+                dmc.GridCol(
+                    dcc.Graph(id='box-plots'),
+                    span=6
+                )
+            ],
+        ),
+        dcc.Graph(id='sankey'),
+        
+        dmc.Group([
+            # Center this column
+            dmc.Stack(
+                html.Img(id='wordcloud')
+                ),
+        ], justify="center"),
+        dmc.Group(
+            dmc.Stack(
+                    dcc.Markdown(id='codeblock',
+                    children = """
+                    ```
+                    ```
+                    """,
+                    
+                    className='md')
+                ),
+            style={"maxHeight": "400px", "overflow": "scroll"}
+        ),
+        html.Br(),
 ],
 fluid=True
 )
@@ -308,7 +303,7 @@ fluid=True
 # Callbacks
 # ---------------------------------------------------------------------
 
-@app.callback(
+@callback(
     Output("datatable", "rowData"),
     Input("initial-data", "data"),
     Input("reloadTop", "n_clicks")
@@ -319,7 +314,7 @@ def load_initial_data(data, n_clicks):
     return data
 
 # update Main visualizations
-@app.callback(
+@callback(
     Output('commit-map', 'figure'),
     Output('pay-histogram', 'figure'),
     Output('sankey', 'figure'),
@@ -337,7 +332,7 @@ def update_visuals(data):
     box_plots = build_box_plots(dff)
     return commit_map, pay_hist, sankey, box_plots
 
-@app.callback(
+@callback(
     Output('applications-created', 'children'),
     Output('rejection-count', 'children'),
     Output('responses', 'children'),
@@ -357,10 +352,10 @@ def update_metrics(data):
     return applications_created, rejection_count, responses, offers
 
 # Display a field in the modal when clicked
-@app.callback(
-    Output("table-modal", "is_open"),
-    Output("table-modal-body", "children"),
-    Output("table-modal-header", "header"),
+@callback(
+    Output("table-modal", "opened"),
+    Output("modal-body", "children"),
+    Output("table-modal", "title"),
     Input("datatable", "virtualRowData"),
     Input("datatable", "cellClicked"),
     Input("close", "n_clicks"),
@@ -373,13 +368,13 @@ def display_modal(data, selected_cell, n_clicks):
         row = selected_cell['rowIndex']
         dff = pd.DataFrame(data)
         row_data = dff.iloc[row]
-        modal_body = []
+        modal_body = ""
         for col in dff.columns:
-            modal_body.append(dcc.Markdown(f"**{col}**: {row_data[col]}"))
+            modal_body += f"###### {col}: \n {row_data[col]}\n"
         return True, modal_body, "Job Application Details"
-    return False, [], ""
+    return False, "", ""
 
-@app.callback(
+@callback(
     Output('wordcloud', 'src'),
     Input('datatable', 'virtualRowData'),
     prevent_initial_call=True

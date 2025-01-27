@@ -2,12 +2,11 @@ import json
 import time
 from google import genai
 from google.genai import types
-from google.cloud import secretmanager, storage
-import dash_bootstrap_components as dbc
-from dash import html, dcc, Input, Output, State, callback_context
+import dash_mantine_components as dmc
+from dash import html, dcc, Input, Output, State, callback_context, register_page, callback
 from apps.utils import access_secret_version, read_text_from_gcs
-from main import app
 
+register_page(__name__)
 
 VALID_USERNAME_PASSWORD_PAIRS = access_secret_version(
     "dashapp-375513",
@@ -107,60 +106,96 @@ def generate(
 
     return response_text
 
-layout = dbc.Container([
-    dbc.Row([
-        dbc.Col([
-            html.H2("Cover Letter Generator"),
-            dbc.Input(id="company", placeholder="Company name"),
-            html.Br(),
-            dbc.Input(id="platform", placeholder="Platform with the job posting"),
-            html.Br(),
-            dbc.RadioItems(
-                id='resume-choice',
-                options=[
-                    {'label': 'Use Default Resume', 'value': 'default'},
-                    {'label': 'Add Custom Resume', 'value': 'custom'}
+layout = dmc.Container([
+    # dmc.Group([
+        html.H2("Cover Letter Generator"),
+        dmc.TextInput(id="company", placeholder="Company name", label="Company Name", w="400", size="xl"),
+        html.Br(),
+        dmc.TextInput(id="platform", placeholder="Platform with the job posting", label="Platform", w="400", size="xl"),
+        html.Br(),
+        dmc.RadioGroup(
+            id='resume-choice',
+            children=[
+                dmc.Radio('Use Default Resume', value='default', my=10),
+                dmc.Radio('Add Custom Resume', value='custom', my=10)
+            ],
+            value='default',
+            label= 'Resume Options',
+            mb=10,
+            mt=10,
+            size="xl",
+        ),
+        html.Br(),
+        dmc.Textarea(id="custom-resume", 
+                     placeholder="Enter custom resume here...", 
+                     value=None,
+                     label='Custom Resume',
+                     maxRows=300,
+                     size="xl",
+                     style={"height": "200px", "display": "none"},
+                     w="75%"
+        ),
+        html.Br(),
+        dmc.Textarea(id="job-description",
+                     placeholder="Enter job description here...",
+                     label='Job Description',
+                     maxRows=300,
+                     size="xl",
+                     style={"height": "500px"},
+                     w="75%"
+        ),
+        dmc.Button("Generate Cover Letter", id="generate-button",  className="mt-3"),
+        html.Br(),
+        html.Div(id="cover-output-message", className="mt-3"),
+        dcc.Loading(id='loading_icon',
+                children=[
+                    dmc.Textarea(id="cover-letter",
+                                 placeholder="Generated cover letter will appear here...",
+                                 label='Cover Letter',
+                                 style={"height": "400px"},
+                                 readOnly=True,
+                                 autosize=True,
+                                 className="mt-3",
+                                 w="75%",
+                                 size="xl",
+                    )
                 ],
-                value='default',
-                inline=True,
-                className="mt-3"
-            ),
-            html.Br(),
-            dbc.Textarea(id="custom-resume", placeholder="Enter custom resume here...", value=None, style={"height": "200px", "display": "none"}),
-            html.Br(),
-            dbc.Textarea(id="job-description", placeholder="Enter job description here...", style={"height": "200px"}),
-            dbc.Button("Generate Cover Letter", id="generate-button", color="primary", className="mt-3"),
-            html.Div(id="cover-output-message", className="mt-3"),
-            dcc.Loading(id='loading_icon',
-                    children=[
-                        dbc.Textarea(id="cover-letter", placeholder="Generated cover letter will appear here...", style={"height": "400px"}, readOnly=True, className="mt-3")
-                    ],
-                    type='default'
+                type='default'
+        ),
+    dmc.Modal(
+        title="Login",
+        children=[
+            dmc.Stack([
+                dmc.Space(h=10),
+                dmc.TextInput(id='username', placeholder='Username', size='md'),
+                dmc.Space(h=10),
+                dmc.PasswordInput(id='password', placeholder='Password', size='md'),
+                dmc.Space(h=20),
+                dmc.Group([
+                    dmc.Button("Login", id="login-button"),
+                    dmc.Button(
+                        "Close",
+                        color="red",
+                        variant="outline",
+                        id="close",
+                    ),
+                ],
+                justify="flex-end",
                 ),
-        ], width=12)
-    ]),
-    dbc.Modal(
-        [
-            dbc.ModalHeader("Login"),
-            dbc.ModalBody([
-                dbc.Input(id='username', placeholder='Username', type='text'),
-                dbc.Input(id='password', placeholder='Password', type='password'),
-                dbc.Button('Login', id='login-button', color='primary', className='mt-3')
-            ]),
-            dbc.ModalFooter(
-                dbc.Button("Close", id="close", className="ml-auto")
-            ),
+            ])
         ],
         id="cover-modal",
-        is_open=False,
+        opened=False,
     ),
-])
+],
+fluid=True
+)
 
 # Combined callback to handle authentication, update graph, and toggle modal
-@app.callback(
+@callback(
     Output('cover-letter', 'value'),
     Output('cover-output-message', 'children'),
-    Output('cover-modal', 'is_open'),
+    Output('cover-modal', 'opened'),
     Input('generate-button', 'n_clicks'),
     Input('login-button', 'n_clicks'),
     Input('close', 'n_clicks'),
@@ -170,7 +205,7 @@ layout = dbc.Container([
     State('job-description', 'value'),
     State('username', 'value'),
     State('password', 'value'),
-    State('cover-modal', 'is_open')
+    State('cover-modal', 'opened')
 )
 def update_graph_and_toggle_modal(
     submit_n_clicks,
@@ -182,11 +217,11 @@ def update_graph_and_toggle_modal(
     job_description,
     username,
     password,
-    is_open):
+    opened):
     ctx = callback_context
 
     if not ctx.triggered:
-        return None, "", is_open
+        return None, "", opened
 
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     if custom_resume is None:
@@ -206,9 +241,9 @@ def update_graph_and_toggle_modal(
     elif button_id == 'close':
         return None, "", False
 
-    return None, "", is_open
+    return None, "", opened
 
-@app.callback(
+@callback(
     Output('custom-resume', 'style'),
     Input('resume-choice', 'value')
 )

@@ -1,11 +1,11 @@
-import json
 import time
 from datetime import date
 import pandas as pd
 import dash_daq as daq
 import dash
 import dash_mantine_components as dmc
-from dash import dcc, html, Input, Output, State, ctx, callback
+import dash_bootstrap_components as dbc
+from dash import dcc, html, Input, Output, State, ctx, callback, register_page, MATCH
 from google.cloud import bigquery
 from pydantic import ValidationError
 from dash_pydantic_form import AccordionFormLayout, FormSection, ModelForm, fields, get_model_cls, ids
@@ -17,7 +17,7 @@ from apps.utils import (
     upsert_data_to_bigQuery_table)
 from data_utils.datamodel import Application
 AIO_ID = "application-form"
-FORM_ID = "Form"
+FORM_ID = "Bob"
 
 # register_page(__name__, path="/form", name="Form", title="Form", description="Form to create and update job applications")
 
@@ -36,9 +36,7 @@ form_layout = dmc.Container(
                     
                     # Job Application Form
                     ---
-                    """,
-                    className='card-text',
-                    ),
+                    """),
 
         # Add button to load current data
         dmc.Select(
@@ -59,27 +57,30 @@ form_layout = dmc.Container(
             justify="flex-end",
         ),
         html.Hr(),
-        dmc.Button("Reload Current Data", id="load-button", n_clicks=0,  style = dict(display='none')), 
+        dbc.Row([
+            dbc.Col([
+                dbc.Button("Reload Current Data", id="load-button", class_name='view-page-button-style', n_clicks=0,  style = dict(display='none')),
+            ], width=3),
+            dbc.Col(
+                width=3),
+        ]),
         dmc.Group(
             children = [
                 html.H3("Role Information"),
                 dmc.Stack(
                     children = [
-                        dmc.Button("Start New Application", id="new-button", n_clicks=0),
-                        html.Div(id="new-output-message", className="mt-3", style={'opacity': 0.5}),
+                        dmc.Button("Start New Application", id="new-button"),
+                        html.Div(id="new-output-message", className="mt-3"),
                     ],
                 )
             ],
             justify="space-between",
         ),
-        html.Div(id="main-form",
-            children = [
-                ModelForm(
-                    item=Application,
-                    aio_id=AIO_ID,
-                    form_id=FORM_ID,
-                ),
-            ],
+        ModelForm(
+            item=Application,
+            aio_id=AIO_ID,
+            form_id=FORM_ID,
+            store_progress="session",
         ),
         dmc.Group(
             children = [
@@ -157,15 +158,15 @@ def is_authenticated(username, password):
 # Callback to handle form submission
 @callback(
     Output("output-message", "children", allow_duplicate=True),
-    Output('modal', 'opened'),
+    Output('modal', 'is_open'),
     Output("load-button", "n_clicks"),
     Input("submit-button", "n_clicks"),
     Input('login-button', 'n_clicks'),
     Input('close', 'n_clicks'),
     State('username', 'value'),
     State('password', 'value'),
-    State('modal', 'opened'),
-    State(ModelForm.ids.main(AIO_ID, FORM_ID), "data"),
+    State('modal', 'is_open'),
+    [State(i[0], i[1]) for i in application_form_fields],
     prevent_initial_call=True
 )
 def update_bigquery(submit_n_clicks,
@@ -174,19 +175,17 @@ def update_bigquery(submit_n_clicks,
                     username,
                     password,
                     is_open,
-                    application_form_data):
+                    *args):
     
-    print(application_form_data)
-    print(Application(**application_form_data))
     button_id = dash.callback_context
     button_id = button_id.triggered[0]['prop_id'].split('.')[0]
+
     if button_id == 'submit-button':
         if username and password and is_authenticated(username, password):
             # Extract the values from the form and create an Application object
-            # args = {application_form_fields[i][2]: args[i] for i in range(len(application_form_fields))}
-            print(type(application_form_data))
+            args = {application_form_fields[i][2]: args[i] for i in range(len(application_form_fields))}
             try:
-                form_app = Application(**application_form_data)
+                form_app = Application(**args)
             except ValidationError as pydantic_err:
                 return pydantic_err, False, None
             
@@ -196,7 +195,8 @@ def update_bigquery(submit_n_clicks,
 
             if errors == [] or errors is None:
                 return f"Application {form_app.application_id} submitted successfully.", False, 1
-            return f"Encountered errors while inserting rows in Bigquery: {errors}", False, None
+            else:
+                return f"Encountered errors while inserting rows in Bigquery: {errors}", False, None
         else:
             return "Opening login modal", True, None
     elif button_id == 'login-button':
@@ -225,19 +225,19 @@ def load_data(n_clicks):
     """
     print(n_clicks)
     if n_clicks is None:
-        return dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
     client = bigquery.Client()
     query = """
-        SELECT
-            application_id,
-            company_name,
-            job_title
-        FROM `dashapp-375513.data_science_job_hunt.applications`
-        ORDER BY company_name
+    SELECT
+        application_id,
+        company_name,
+        job_title
+    FROM `dashapp-375513.data_science_job_hunt.applications`
+    ORDER BY company_name
     """
     dff = client.query_and_wait(query).to_dataframe()
     if dff.empty:
-        return "No data available.", [], None
+        return "No data available.", [], None, None
     dff[['application_id', 'company_name', 'job_title']] = dff[['application_id', 'company_name', 'job_title']].fillna('').astype(str)
     options = [{"label": row['company_name'] +' - ' + row['job_title'], "value": row["application_id"]} for index, row in dff.iterrows()]
     return "Data loaded successfully.", options, dff.to_dict("records")
@@ -245,8 +245,7 @@ def load_data(n_clicks):
 
 # Callback to load the selected application
 @callback(
-    Output('main-form', "children"),
-    Output("new-output-message", "children"),
+    Output('application-form', "item"),
     Input("load-application-button", "n_clicks"),
     Input("new-button", "n_clicks"),
     State("current-application-dropdown", "value"),
@@ -254,16 +253,23 @@ def load_data(n_clicks):
     prevent_initial_call=True
 )
 def load_application(edit_clicks, new_clicks, application_id, raw_data):
+    print(edit_clicks, new_clicks, application_id)
     if edit_clicks is None and new_clicks is None:
         return dash.no_update
     triggered_id = ctx.triggered_id
+    print(triggered_id)
     if triggered_id == 'new-button':
+        print('New button clicked')
+        print(edit_clicks, new_clicks, application_id)
         dff = pd.DataFrame(raw_data)
         dff['application_id'] = dff['application_id'].astype(int)
         new_id = dff['application_id'].max() + 1
         new_app = Application(application_id = str(new_id), company_name = 'Enter Company Name', job_title = 'Job Title')
-        form = ModelForm(item=new_app, aio_id=AIO_ID, form_id=FORM_ID, store_progress="session")
-        return form, 'New application created successfully.'
+        
+        # get a tuple of the default values
+        # new_app = tuple(new_app.model_dump().values())
+        
+        return new_app
     
     elif triggered_id == 'load-application-button':
         # Load the record form bigquery where application_id = application_id store it as an Application object
@@ -285,8 +291,11 @@ def load_application(edit_clicks, new_clicks, application_id, raw_data):
         # Remove the created_at and updated_at fields
         row.pop('created_at')
         row.pop('updated_at')
-        form = ModelForm(item=Application(**row), aio_id=AIO_ID, form_id=FORM_ID, store_progress="session")
-        return form, 'Application loaded successfully.'
+
+        # model_cls = get_model_cls(model_name)
+        # item = model_cls.model_validate(form_data)
+        # children.children[1].children = item.model_dump_json(indent=2)
+        return [row[i[2]] for i in application_form_fields]
 
 
 # Add a delete button to delete the selected application with confirmation modal

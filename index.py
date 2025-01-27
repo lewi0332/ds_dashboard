@@ -7,180 +7,139 @@ Main file to run the app.
 Auther: Derrick Lewis
 """
 import os
-from dash import  dcc, html
+from dash import  dcc, html, callback, page_registry, page_container
 from dash.dependencies import Input, Output, State
 import plotly.io as pio
-import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 from plotly_theme_light import plotly_light
-from main import server, app
-from apps import dashboard, home, form, cover_letter, about, segmentation
-#page2, page3, page4
+from main import app
+from dash_iconify import DashIconify
+from apps.form import form_layout
 
 pio.templates["plotly_light"] = plotly_light
 pio.templates.default = "plotly_light"
 
+COMPANY_LOGO = "DATALOGO.jpg"
 
-COMPANY_LOGO ="DATALOGO.jpg"
+dropdown_disc = dmc.Stack(mt="md",
+                          gap=0,
+                          children=[
+                          dmc.NavLink(
+                              label=page['name'],
+                              href=page["path"],
+                              id={"type": 'navlink_navbar', "index": page["path"]}
+                              )
+                           for page in page_registry.values()
+                           ]
+                        )
 
-# building the navigation bar
-# https://github.com/facultyai/dash-bootstrap-components/blob/master/examples/advanced-component-usage/Navbars.py
-dropdown_disc = dbc.DropdownMenu(
-    children=[
-        dbc.DropdownMenuItem("Home", href="/home"),
-        dbc.DropdownMenuItem("DS Dashboard", href="/dashboard"),
-        dbc.DropdownMenuItem("Cover Letter Generator", href="/cover-letter"),
-        dbc.DropdownMenuItem("Role Segmentation", href="/segmentation"),
-        dbc.DropdownMenuItem("About Me", href="/about"),
-        dbc.DropdownMenuItem("Add Application", href="/form"),
-    ],
-    nav=True,
-    in_navbar=True,
-    label="Pages",
-)
-
-navbar = dbc.Navbar(
-    dbc.Container([
-        html.A(
-            # Use row and col to control vertical alignment of logo / brand
-            dbc.Row(
-                [
-                    dbc.Col(
-                        html.Img(src=app.get_asset_url(COMPANY_LOGO), height="50px"),
-                         ),
-                    dbc.Col(
-                        dbc.NavbarBrand("Derrick Lewis | Data Scientist",
-                            style={
-                            # 'font-family': 'plain',
-                            'color': 'grey',
-                            'font-weight': 'light',
-                            'font-size': '1.9rem',
-                            'margin-top': '1rem',
-                            'margin-left': '1rem'
-                            }
+layout = [
+    dcc.Location(id="url", refresh="callback-nav"),
+    dmc.Drawer(
+        id="form_drawer",
+        padding="md",
+        position="right",
+        size="50%",
+    ),
+    dmc.AppShell(
+    [
+        dmc.AppShellHeader(
+            dmc.Group(
+                style={"display": "flex", "justifyContent": "space-between"},
+                children=[
+                    dmc.Group(
+                        children=[
+                            dmc.Burger(
+                                id="mobile-burger",
+                                size="sm",
+                                hiddenFrom="sm",
+                                opened=False,
+                            ),
+                            dmc.Burger(
+                                id="desktop-burger",
+                                size="sm",
+                                visibleFrom="sm",
+                                opened=False,
+                            ),
+                            dmc.Image(src=app.get_asset_url(COMPANY_LOGO), h=40),
+                            # dmc.Image(src=COMPANY_LOGO, h=40),
+                            dmc.Anchor(
+                                children= [
+                                dmc.Title("Derrick Lewis - Data Science", style={"color": "black", "textDecoration": "none"})
+                                ],
+                                href="/",
                             )
-                    )
+                        ],
+                    ),
+                    dmc.Group(
+                        children=[
+                            dmc.Button(
+                                "Add/Edit Application",
+                                size="md",
+                                leftSection=DashIconify(icon="ic:baseline-auto-awesome-motion", width=15),
+                                id='add-edit-app',
+                            )
+                        ],
+                    ),
                 ],
-                align="center",
-                className="g-0"
+                h="100%",
+                px="md",
             ),
-            href="/home",
-            style={'text-decoration':'none'}
+        ),
+        dmc.AppShellNavbar(
+            id="navbar",
+            children=dropdown_disc,
+            p="md",
+        ),
+        dmc.AppShellMain(children=page_container,
+                style={"marginLeft": "10vw", "marginRight": "10vw"}  # Optionally add any additional styling here
             ),
-        
-        dbc.NavbarToggler(id="navbar-toggler2"),
-        dbc.Collapse(
-            dbc.Nav(
-                # right align dropdown menu with ml-auto className
-                [],
-                className="ml-auto",
-                navbar=True),
-            id="navbar-collapse2",
-            navbar=True,
-        ),
-        dbc.NavbarToggler(id="navbar-toggler3"),
-        dbc.Collapse(
-            dbc.Nav(
-                # right align dropdown menu with ml-auto className
-                [],
-                className="ml-auto",
-                navbar=True),
-            id="navbar-collapse3",
-            navbar=True,
-        ),
-        dbc.NavbarToggler(id="navbar-toggler4"),
-        dbc.Collapse(
-            dbc.Nav(
-                # right align dropdown menu with ml-auto className
-                [],
-                className="ml-auto",
-                navbar=True),
-            id="navbar-collapse4",
-            navbar=True,
-        ),
-        dbc.NavbarToggler(id="navbar-toggler5"),
-        dbc.Collapse(
-            dbc.Nav(
-                # right align dropdown menu with ml-auto className
-                [dropdown_disc],
-                className="ml-auto",
-                navbar=True),
-            id="navbar-collapse5",
-            navbar=True,
-        ),
+        dmc.AppShellAside("aside_", p="md"),
     ],
-    className="w-100",
+    header={"height": 100},
+    navbar={
+        "width": 300,
+        "breakpoint": "sm",
+        "collapsed": {"mobile": True, "desktop": True},
+    },
+    aside={
+        "width": 2000,
+        "breakpoint": "md",
+        "collapsed": {"desktop": True, "mobile": True},
+    },
+
+    padding="xl",
+    id="appshell",
     )
-    , color="white"
-    , dark=False
-    , className="mb-4"
+]
+
+
+app.layout = dmc.MantineProvider(layout)
+
+@callback(
+    Output("appshell", "navbar"),
+    Input("mobile-burger", "opened"),
+    Input("desktop-burger", "opened"),
+    State("appshell", "navbar"),
 )
+def toggle_navbar(mobile_opened, desktop_opened, navbar):
+    navbar["collapsed"] = {
+        "mobile": not mobile_opened,
+        "desktop": not desktop_opened,
+    }
+    return navbar
 
-
-def toggle_navbar_collapse(n, is_open):
-    """Toggle navbar-collapse when clicking on navbar-toggler"""
-    if n:
-        return not is_open
-    return is_open
-
-
-for i in [2]:
-    app.callback(
-        Output(f"navbar-collapse{i}", "is_open"),
-        [Input(f"navbar-toggler{i}", "n_clicks")],
-        [State(f"navbar-collapse{i}", "is_open")],
-    )(toggle_navbar_collapse)
-
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=True),
-    navbar,
-    html.Div(id='page-content', style={
-        'margin-right': '70px',
-        'margin-left': '50px'
-    }),
-    html.Div(
-        [
-            dcc.Markdown(f"""
-                        Updated on
-                        """,
-                             style={
-                                 'font-family': 'plain',
-                                 'color': 'grey',
-                                 'font-weight': 'light',
-                                 'align': 'right'
-                             }),
-        ],
-        id='footer', style={
-        'margin-top': '250px',
-        'margin-right': '70px',
-        'margin-left': '50px',
-        'float': 'right'
-    })
-])
-
-
-@app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
-def display_page(pathname):
-    """
-    This function is used to route the user to the correct page based on the url
-    """
-    print(pathname)
-    if pathname == '/':
-        return home.layout
-    elif pathname == '/home':
-        return home.layout
-    elif pathname == '/dashboard':
-        return dashboard.layout
-    elif pathname == '/cover-letter':
-        return cover_letter.layout
-    elif pathname == '/segmentation':
-        return segmentation.layout
-    elif pathname == '/about':
-        return about.layout
-    elif pathname == '/form':
-        return form.layout
+@callback(
+    Output("form_drawer", "opened"),
+    Output("form_drawer", "children"),
+    Input("add-edit-app", "n_clicks"),
+    State("form_drawer", "opened"),
+)
+def toggle_aside(clicks, aside):
+    if clicks is not None:
+        return not aside, form_layout
     else:
-        return '404'
-
+        return aside, []
 
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0', debug=True)
