@@ -110,7 +110,7 @@ def make_word_cloud_image(dff):
 layout = dmc.Container(
     children = [
         dcc.Store(id='initial-data', data=load_data()),
-        dcc.Markdown(id='intro',
+        dcc.Markdown(
             children = """
             ---
             # Job Application Tracking

@@ -32,7 +32,7 @@ with blob.open('r') as outfile:
 # Dummy page to get started.
 layout = dmc.Container(
     children=[
-        dcc.Markdown(id='intro',
+        dcc.Markdown(
             children = """
             ---
             # Segmentation
@@ -46,7 +46,8 @@ layout = dmc.Container(
             It will test my ability to compentently use NLP and clustering techniques.
             
             ---
-            """
+            """,
+            className='card-text',
         ),
         dcc.Graph(figure=cluster3d),
         html.Br(),

@@ -10,7 +10,7 @@ card_style = {
 }
 
 layout = dmc.Container([
-    dcc.Markdown(id='intro',
+    dcc.Markdown(id='home_intro',
         children = """
         ---
         # The Data Science Job Hunt
