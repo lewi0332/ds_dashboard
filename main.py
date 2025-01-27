@@ -1,16 +1,15 @@
 #!/bin/bash
-import dash
-import dash_bootstrap_components as dbc
-
-external_stylesheets = [dbc.themes.BOOTSTRAP]
+from dash import Dash, _dash_renderer
+import dash_mantine_components as dmc
 
 
-app = dash.Dash(__name__,
-                external_stylesheets=external_stylesheets,
-                meta_tags=[{
-                    "name": "viewport",
-                    "content": "width=device-width"
-                }])
+_dash_renderer._set_react_version("18.2.0")
+app = Dash(__name__,
+           suppress_callback_exceptions=True,
+           use_pages=True,
+           pages_folder='apps',
+           external_stylesheets=dmc.styles.ALL
+        )
 
 server = app.server
 

@@ -1,8 +1,10 @@
 import json
-from dash import html, dcc
+from dash import html, dcc, register_page, callback
 import plotly.io as pio
-import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 from google.cloud import storage, secretmanager
+
+register_page(__name__)
 
 def access_secret_version(project_id, secret_id, version_id, json_type=False):
     """
@@ -28,29 +30,26 @@ with blob.open('r') as outfile:
     cluster3d = pio.from_json(json.load(outfile))
 
 # Dummy page to get started.
-layout = dbc.Container([
-    dbc.Row([
-        dbc.Col(
-            [
-                dcc.Markdown(id='intro',
-                children = """
-                ---
-                # Segmentation
-                ---
+layout = dmc.Container(
+    children=[
+        dcc.Markdown(id='intro',
+            children = """
+            ---
+            # Segmentation
+            ---
 
-                ### Coming soon!
+            ### Coming soon!
 
-                This page will contain a tool to segment roles based on skills, requirements, and responsibilities.
+            This page will contain a tool to segment roles based on skills, requirements, and responsibilities.
 
-                This may be an interesting tool for me to understand the market, though unlikely to be useful for job hunting.
-                It will test my ability to compentently use NLP and clustering techniques.
-                
-                ---
-                """
-                ),
-            ]
-        )
-    ]),
-    dcc.Graph(figure=cluster3d),
-    html.Br(),
-])
+            This may be an interesting tool for me to understand the market, though unlikely to be useful for job hunting.
+            It will test my ability to compentently use NLP and clustering techniques.
+            
+            ---
+            """
+        ),
+        dcc.Graph(figure=cluster3d),
+        html.Br(),
+    ],
+    fluid=True
+)

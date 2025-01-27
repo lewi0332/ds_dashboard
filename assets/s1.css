@@ -1,6 +1,6 @@
 @font-face {
     font-family: "plain";
-    src: url(assets/fonts/plain/Plain-Regular.otf);
+    src: url("fonts/plain/Plain-Regular.otf") format("opentype");
 }
 
 *,
@@ -71,9 +71,9 @@ body {
 }
 
 .card-text {
-        font-family: plain;
-        color: grey;
-        font-weight: light;
+    font-family: plain;
+    color: grey;
+    font-weight: light;
 }
 
 .center-aligned-header .ag-header-cell-label {

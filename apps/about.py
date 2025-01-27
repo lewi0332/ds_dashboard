@@ -1,10 +1,11 @@
 import json
 from io import BytesIO
 from PIL import Image
-from dash import html, dcc
-import dash_bootstrap_components as dbc
+from dash import html, dcc, register_page, callback
+import dash_mantine_components as dmc
 from google.cloud import storage, secretmanager
 
+register_page(__name__)
 
 def access_secret_version(project_id, secret_id, version_id, json_type=False):
     """
@@ -25,9 +26,9 @@ bucket = storage_client.bucket(BUCKET_NAME)
 blob = bucket.blob('NORDclose.jpg')
 img = Image.open(BytesIO(blob.download_as_bytes()))
 
-layout = dbc.Container([
-    dbc.Row([
-        dbc.Col(
+layout = dmc.Container([
+    dmc.Group([
+        dmc.Stack(
             [
                 dcc.Markdown(id='intro',
                 children = """
@@ -36,8 +37,14 @@ layout = dbc.Container([
                 ---
                 """
                 ),
-                # center the image
-                html.Img(src=img, style={'height':'7%',}, className='img-fluid'),
+                dmc.Center(
+                    dmc.Image(src=img,
+                            #   fit='scale-down',
+                            h=300,
+                            w=300,
+                            radius="md",
+                        ),
+                ),
                 html.Hr(),
                 dcc.Markdown(
                 """
@@ -80,4 +87,6 @@ layout = dbc.Container([
             ]
         )
     ]),
-])
+],
+fluid=True
+)
