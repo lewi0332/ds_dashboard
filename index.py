@@ -12,7 +12,7 @@ from dash.dependencies import Input, Output, State
 import plotly.io as pio
 import dash_mantine_components as dmc
 from plotly_theme_light import plotly_light
-from main import app
+from main import app, server
 from dash_iconify import DashIconify
 from apps.form import form_layout
 
@@ -142,4 +142,4 @@ def toggle_aside(clicks, aside):
         return aside, []
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', debug=True)
+    app.run_server(host='0.0.0.0')
