@@ -3,22 +3,12 @@ from dash import html, dcc, register_page, callback
 import plotly.io as pio
 import dash_mantine_components as dmc
 from google.cloud import storage, secretmanager
+from apps.utils import access_secrets
 
 register_page(__name__)
 
-def access_secret_version(project_id, secret_id, version_id, json_type=False):
-    """
-    Access the payload for the given secret version if one exists.
-    """
-    client = secretmanager.SecretManagerServiceClient()
-    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
-    response = client.access_secret_version(request={"name": name})
-    payload = response.payload.data.decode("UTF-8")
-    if json_type:
-        payload = json.loads(payload)
-    return payload
 
-BUCKET_NAME = access_secret_version("dashapp-375513", "BUCKET_NAME", "latest")
+BUCKET_NAME = access_secrets("dashapp-375513", "BUCKET_NAME", "latest")
 
 storage_client = storage.Client()
 bucket = storage_client.bucket(BUCKET_NAME)

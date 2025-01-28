@@ -11,19 +11,18 @@ from pydantic import ValidationError
 from dash_pydantic_form import AccordionFormLayout, FormSection, ModelForm, fields, get_model_cls, ids
 from data_utils.datamodel import Application, application_form_fields
 from apps.utils import (
-    access_secret_version,
-    upload_options_to_gcs,
-    read_options_from_gcs,
-    upsert_data_to_bigQuery_table)
-from data_utils.datamodel import Application
+    access_secrets,
+    upload_options_to_gcs)
+from data_utils.upload_to_bq import upsert_data_to_bigQuery_table
+from data_utils.datamodel import Application, form_fields
 AIO_ID = "application-form"
 FORM_ID = "Form"
 
 # register_page(__name__, path="/form", name="Form", title="Form", description="Form to create and update job applications")
 
-VALID_USERNAME_PASSWORD_PAIRS = access_secret_version("dashapp-375513", "VALID_USERNAME_PASSWORD_PAIRS", "latest", json_type=True)
+VALID_USERNAME_PASSWORD_PAIRS = access_secrets("dashapp-375513", "VALID_USERNAME_PASSWORD_PAIRS", "latest", json_type=True)
 
-BUCKET_NAME = access_secret_version(
+BUCKET_NAME = access_secrets(
     "dashapp-375513",
     "BUCKET_NAME",
     "latest")
@@ -78,6 +77,7 @@ form_layout = dmc.Container(
                     item=Application,
                     aio_id=AIO_ID,
                     form_id=FORM_ID,
+                    form_layout=form_fields
                 ),
             ],
         ),
@@ -262,7 +262,7 @@ def load_application(edit_clicks, new_clicks, application_id, raw_data):
         dff['application_id'] = dff['application_id'].astype(int)
         new_id = dff['application_id'].max() + 1
         new_app = Application(application_id = str(new_id), company_name = 'Enter Company Name', job_title = 'Job Title')
-        form = ModelForm(item=new_app, aio_id=AIO_ID, form_id=FORM_ID, store_progress="session")
+        form = ModelForm(item=new_app, aio_id=AIO_ID, form_id=FORM_ID, form_layout=form_fields, store_progress="session")
         return form, 'New application created successfully.'
     
     elif triggered_id == 'load-application-button':
@@ -285,7 +285,7 @@ def load_application(edit_clicks, new_clicks, application_id, raw_data):
         # Remove the created_at and updated_at fields
         row.pop('created_at')
         row.pop('updated_at')
-        form = ModelForm(item=Application(**row), aio_id=AIO_ID, form_id=FORM_ID, store_progress="session")
+        form = ModelForm(item=Application(**row), aio_id=AIO_ID, form_id=FORM_ID, form_layout=form_fields, store_progress="session")
         return form, 'Application loaded successfully.'
 
 

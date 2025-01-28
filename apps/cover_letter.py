@@ -4,17 +4,17 @@ from google import genai
 from google.genai import types
 import dash_mantine_components as dmc
 from dash import html, dcc, Input, Output, State, callback_context, register_page, callback
-from apps.utils import access_secret_version, read_text_from_gcs
+from apps.utils import access_secrets, read_text_from_gcs
 
 register_page(__name__)
 
-VALID_USERNAME_PASSWORD_PAIRS = access_secret_version(
+VALID_USERNAME_PASSWORD_PAIRS = access_secrets(
     "dashapp-375513",
     "VALID_USERNAME_PASSWORD_PAIRS",
     "latest",
     json_type=True)
 
-BUCKET_NAME = access_secret_version(
+BUCKET_NAME = access_secrets(
     "dashapp-375513",
     "BUCKET_NAME",
     "latest")
