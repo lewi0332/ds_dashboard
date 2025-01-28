@@ -72,13 +72,14 @@ layout = dmc.Container([
                                         # w=600,
                                         # h=600,
                                         p="md",
-                                        style={"backgroundColor": "rgba(255, 255, 255, 0.9)", "width": "100%", "height": "100%", "display": "flex", "alignItems": "flex-start", "justifyContent": "flex-start"},                                    )
+                                        style={"backgroundColor": "rgba(255, 255, 255, 0.95)", "width": "100%", "height": "100%", "display": "flex", "alignItems": "flex-start", "justifyContent": "flex-start"},                                    )
                                 ],
-                                w=600,
+                                w='flex',
                                 h=600,
                                 style={"backgroundSize": "cover", "backgroundPosition": "center", "width": "100%", "height": "100%"}
                             ),
                         ),
+                        dmc.Space(h=20),
                         dmc.Anchor(
                             dmc.Button('View Page'),
                             href='/dashboard'
@@ -119,16 +120,17 @@ layout = dmc.Container([
                                             )
                                         ],
                                         p="md",
-                                        style={"backgroundColor": "rgba(255, 255, 255, 0.9)", "width": "100%", "height": "100%", "display": "flex", "alignItems": "flex-start", "justifyContent": "flex-start"},
+                                        style={"backgroundColor": "rgba(255, 255, 255, 0.95)", "width": "100%", "height": "100%", "display": "flex", "alignItems": "flex-start", "justifyContent": "flex-start"},
                                         # w=600,
                                         # h=600,
                                     )
                                 ],
-                                w=600,
+                                w='flex',
                                 h=600,
                                 style={"backgroundSize": "cover", "backgroundPosition": "center", "width": "100%", "height": "100%"},
                             ),
                         ),
+                        dmc.Space(h=20),
                         dmc.Anchor(
                             dmc.Button('View Page'),
                             href='/cover-letter'
@@ -165,16 +167,17 @@ layout = dmc.Container([
                                             )
                                         ],
                                         p="md",
-                                        style={"backgroundColor": "rgba(255, 255, 255, 0.9)", "width": "100%", "height": "100%", "display": "flex", "alignItems": "flex-start", "justifyContent": "flex-start"},
+                                        style={"backgroundColor": "rgba(255, 255, 255, 0.95)", "width": "100%", "height": "100%", "display": "flex", "alignItems": "flex-start", "justifyContent": "flex-start"},
                                         # w=600,
                                         # h=600,
                                     )
                                 ],
-                                w=600,
+                                w='flex',
                                 h=600,
                                 style={"backgroundSize": "cover", "backgroundPosition": "center", "width": "100%", "height": "100%"},
                             ),
                         ),
+                        dmc.Space(h=20),
                         dmc.Anchor(
                             dmc.Button('View Page'),
                             href='/segmentation'
@@ -211,16 +214,17 @@ layout = dmc.Container([
                                             )
                                         ],
                                         p="md",
-                                        style={"backgroundColor": "rgba(255, 255, 255, 0.9)", "width": "100%", "height": "100%", "display": "flex", "alignItems": "flex-start", "justifyContent": "flex-start"},
+                                        style={"backgroundColor": "rgba(255, 255, 255, 0.95)", "width": "100%", "height": "100%", "display": "flex", "alignItems": "flex-start", "justifyContent": "flex-start"},
                                         # w=600,
                                         # h=600,
                                     )
                                 ],
-                                w=600,
+                                w='flex',
                                 h=600,
                                 style={"backgroundSize": "cover", "backgroundPosition": "center", "width": "100%", "height": "100%"},
                             ),
                         ),
+                        dmc.Space(h=20),
                         dmc.Anchor(
                             dmc.Button('View Page'),
                             href='/about'
