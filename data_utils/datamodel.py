@@ -1,4 +1,4 @@
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Literal
 from typing_extensions import Annotated
 from datetime import date
 from pydantic import BaseModel, BeforeValidator, Field
@@ -33,7 +33,7 @@ class Application(BaseModel):
     company_name: str
     job_title: str
     location: Optional[str] = None
-    office_participation: Optional[str] = None
+    office_participation: Literal['Hybrid', 'Remote', 'On-site'] = None
     role_desc: Optional[str] = Field(
         title="Role Description",
         description="Summary of the role",
@@ -106,7 +106,7 @@ class Application(BaseModel):
     hiring_manager_screen_date: Optional[date] = None
     technical_screen: bool = False
     technical_screen_date: Optional[date] = None
-    technical_screen_type: Optional[str] = None
+    technical_screen_type: Optional[Literal['Interview', 'Test', 'Task']] = None
     technical_screen_time: Optional[int] = 0
     offer: bool = False
     offer_date: Optional[date] = None
