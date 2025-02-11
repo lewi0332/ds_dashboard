@@ -84,25 +84,24 @@ class Application(BaseModel):
             "repr_kwargs": {"multiple": True, "orientation": "horizontal", "data_getter": "core_skills", "n_cols": 1.0},
         },
     )
-    llm: bool = Field(repr_type="Switch", default=False)
-    mmm: bool = Field(repr_type="Switch", default=False)
-    marketing: bool = Field(repr_type="Switch", default=False)
-    retail: bool = Field(repr_type="Switch", default=False)
-    healthcare: bool = Field(repr_type="Switch", default=False)
-    finance: bool = Field(repr_type="Switch", default=False)
-    senior_role: bool = Field(repr_type="Switch", default=False)
-    staff_role: bool = Field(repr_type="Switch", default=False)
-    generalist_role: bool = Field(repr_type="Switch", default=False)
-    management_role: bool = Field(repr_type="Switch", default=False)
-    refferal: bool = Field(repr_type="Switch", default=False)
-    recruiter: bool = Field(repr_type="Switch", default=False)
+    llm: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    mmm: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    marketing: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    retail: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    healthcare: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    finance: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    senior_role: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    staff_role: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    generalist_role: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    management_role: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    refferal: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
+    recruiter: bool = Field(json_schema_extra = {"repr_type":"Switch", "repr_kwargs":{'default':False}})
     application_source: Optional[str] = Field(
-        default="LinkedIn",
         title="Application Source",
         json_schema_extra={
             "repr_type": "Select",
-            "repr_kwargs": {"data_getter": "application_source_list"},
-        },
+            "repr_kwargs": {"data_getter": "application_source_list", "default":"LinkedIn"},
+        }
     )
     recruiter_screen: bool = False
     recruiter_screen_date: Optional[date] = None
