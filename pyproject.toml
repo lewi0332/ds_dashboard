@@ -31,4 +31,5 @@ dev = [
     "ipykernel>=6.29.5",
     "nbformat>=5.10.4",
     "pandas-gbq>=0.26.1",
+    "pytest>=8.3.4",
 ]
