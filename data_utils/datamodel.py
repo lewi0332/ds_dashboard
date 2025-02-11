@@ -27,7 +27,11 @@ fields.Select.register_data_getter(
 )
 
 class Application(BaseModel):
-    application_id: Annotated[str, BeforeValidator(ensure_id)] = Field(read_only=True, title="Application ID")
+    application_id: Annotated[str, BeforeValidator(ensure_id)] = Field(
+        title="Application ID",
+        json_schema_extra={"repr_kwargs":{'read_only':True}},
+
+    )
     application_date: date = date.today()
     application_link: Optional[str] = None
     company_name: str
